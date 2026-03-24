@@ -507,36 +507,306 @@ button {
   margin-bottom: 6px;
 }
 
-.game-placeholder {
+.detail-extra {
+  margin-top: 20px;
+}
+
+.submenu-card,
+.game-card {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.submenu-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: end;
+}
+
+.submenu-header p {
+  max-width: 36ch;
+  margin: 0;
+}
+
+.submenu-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
-  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
   margin-top: 18px;
 }
 
-.game-lane {
-  min-height: 320px;
-  display: grid;
-  place-items: center;
-  border-radius: 30px;
-  border: 3px dashed rgba(255, 143, 90, 0.45);
-  background: linear-gradient(180deg, #fff8e9 0%, #fffdf7 100%);
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #d06b41;
+.submenu-button {
+  display: block;
+  width: 100%;
+  border: none;
+  border-radius: 26px;
+  padding: 20px;
+  text-align: left;
+  color: var(--ink);
+  background: linear-gradient(180deg, #fff1e8 0%, #fff8f3 100%);
+  box-shadow: var(--shadow);
+  cursor: pointer;
 }
 
-.game-panel {
+.submenu-button strong {
+  display: block;
+  margin: 8px 0;
+  font-size: 1.4rem;
+}
+
+.submenu-button.peach {
+  border: 2px solid rgba(255, 143, 90, 0.28);
+}
+
+.submenu-emoji {
+  display: inline-grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ffb18a, #ff8f5a);
+  color: white;
+  font-size: 1.6rem;
+  font-weight: 900;
+}
+
+.tiger-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 248, 238, 0.96) 100%);
+}
+
+.game-topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+}
+
+.game-topbar h2 {
+  margin: 0;
+}
+
+.game-timer-box {
+  min-width: 220px;
+}
+
+.game-timer-box strong {
+  display: block;
+  margin-bottom: 8px;
+  text-align: right;
+  font-size: 1.2rem;
+}
+
+.game-timer-track {
+  height: 16px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(33, 48, 74, 0.12);
+}
+
+.game-timer-fill {
+  height: 100%;
+  transform-origin: left center;
+  background: linear-gradient(90deg, #ff7c57 0%, #ffcf5b 100%);
+  transition: transform 100ms linear;
+}
+
+.tiger-stage {
+  position: relative;
+  min-height: 460px;
+  margin-top: 20px;
+  overflow: hidden;
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.9), transparent 26%),
+    linear-gradient(180deg, #cdefff 0%, #8ed6ff 42%, #4fb2e7 100%);
+}
+
+.stage-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.water-layer {
+  position: absolute;
+  left: -10%;
+  width: 120%;
+  border-radius: 50%;
+}
+
+.water-back {
+  bottom: 110px;
+  height: 180px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.water-front {
+  bottom: -56px;
+  height: 180px;
+  background: rgba(9, 100, 167, 0.18);
+}
+
+.safe-house {
+  position: absolute;
+  right: 24px;
+  bottom: 88px;
+  width: 100px;
+  height: 116px;
   display: grid;
-  align-content: start;
+  place-items: end center;
+  padding-bottom: 14px;
+  border-radius: 24px 24px 18px 18px;
+  background: linear-gradient(180deg, #ffe587 0%, #ffbe55 100%);
+  color: #633500;
+  font-size: 2rem;
+  font-weight: 900;
+  box-shadow: var(--shadow);
+}
+
+.safe-house::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: 14px;
+  width: 72px;
+  height: 38px;
+  border-radius: 20px 20px 8px 8px;
+  background: #ff8f5a;
+}
+
+.runner,
+.tiger {
+  position: absolute;
+  bottom: 84px;
+  display: grid;
+  place-items: center;
+  transition: transform 180ms ease-out;
+}
+
+.runner {
+  right: 108px;
+  width: 84px;
+  height: 84px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 3rem;
+  box-shadow: var(--shadow);
+  z-index: 3;
+}
+
+.runner.safe {
+  right: 52px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.runner.caught {
+  opacity: 0.2;
+}
+
+.tiger {
+  left: 28px;
+  width: 92px;
+  height: 92px;
+  border-radius: 30px;
+  background: linear-gradient(180deg, #ffd87a 0%, #ff9b52 100%);
+  font-size: 3.2rem;
+  box-shadow: var(--shadow);
+  z-index: 4;
+}
+
+.tiger.attack {
+  filter: saturate(1.2) drop-shadow(0 0 18px rgba(255, 110, 52, 0.4));
+}
+
+.bubble-field {
+  position: absolute;
+  inset: 0;
+}
+
+.letter-bubble {
+  position: absolute;
+  width: 84px;
+  height: 84px;
+  border: none;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #14324b;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 18px 32px rgba(20, 50, 75, 0.18);
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease, opacity 120ms ease;
+}
+
+.letter-bubble:hover:not(:disabled) {
+  transform: scale(1.06);
+}
+
+.letter-bubble.target {
+  background: linear-gradient(180deg, #fff0a8 0%, #ffd063 100%);
+}
+
+.letter-bubble:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.letter-bubble.pulse {
+  transform: scale(1.12);
+}
+
+.stage-message {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  min-width: min(88%, 520px);
+  padding: 14px 18px;
+  border-radius: 999px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.88);
+  color: #12324d;
+  font-weight: 800;
+  box-shadow: var(--shadow);
+  z-index: 5;
+}
+
+.stage-message.fail {
+  background: rgba(255, 224, 214, 0.96);
+  color: #8a3617;
+}
+
+.stage-message.success {
+  background: rgba(228, 255, 227, 0.96);
+  color: #1b6a31;
+}
+
+.tiger-ui {
+  grid-template-columns: minmax(0, 1fr) 320px;
+  align-items: start;
+}
+
+.tiger-info-panel,
+.tiger-action-panel {
+  display: grid;
   gap: 14px;
 }
 
 @media (max-width: 900px) {
   .submenu-header,
-  .game-placeholder {
+  .tiger-ui,
+  .game-topbar {
     grid-template-columns: 1fr;
     display: grid;
+  }
+
+  .game-timer-box {
+    min-width: 0;
+  }
+
+  .tiger-stage {
+    min-height: 500px;
   }
 }
 
@@ -549,7 +819,877 @@ button {
     font-size: 1.25rem;
   }
 
-  .game-lane {
-    min-height: 240px;
+  .tiger-stage {
+    min-height: 520px;
   }
+
+  .letter-bubble {
+    width: 72px;
+    height: 72px;
+    font-size: 1.7rem;
+  }
+
+  .runner {
+    right: 82px;
+    width: 68px;
+    height: 68px;
+    font-size: 2.4rem;
+  }
+
+  .runner.safe {
+    right: 38px;
+  }
+
+  .tiger {
+    width: 76px;
+    height: 76px;
+    font-size: 2.7rem;
+  }
+
+  .safe-house {
+    right: 14px;
+    width: 86px;
+    height: 100px;
+    font-size: 1.6rem;
+  }
+}
+.game-start-dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  display: grid;
+  place-items: center;
+  background: rgba(18, 33, 54, 0.36);
+  backdrop-filter: blur(6px);
+}
+
+.game-start-dialog {
+  width: min(88%, 420px);
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  text-align: center;
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 30px 60px rgba(20, 50, 75, 0.24);
+}
+
+.game-start-dialog h3 {
+  margin: 6px 0 10px;
+  font-size: 2rem;
+}
+
+.game-start-dialog p {
+  margin: 0 0 18px;
+  line-height: 1.7;
+}
+
+.game-start-dialog.countdown {
+  background: linear-gradient(180deg, #fff8e9 0%, #fff2da 100%);
+}
+
+.dialog-start-button {
+  max-width: 180px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.countdown-text {
+  font-size: clamp(3rem, 10vw, 5.6rem);
+  font-weight: 900;
+  color: #ff7c57;
+  text-shadow: 0 10px 24px rgba(255, 124, 87, 0.25);
+}
+.tiger-game-shell {
+  position: relative;
+  display: grid;
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.guide-message-card {
+  padding: 16px 18px;
+  border-radius: 22px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.9);
+  color: #12324d;
+  font-weight: 800;
+  box-shadow: var(--shadow);
+}
+
+.guide-message-card.fail {
+  background: rgba(255, 224, 214, 0.96);
+  color: #8a3617;
+}
+
+.guide-message-card.success {
+  background: rgba(228, 255, 227, 0.96);
+  color: #1b6a31;
+}
+
+.chase-scene-card,
+.game-board-card {
+  padding: 16px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--shadow);
+}
+
+.chase-scene {
+  position: relative;
+  min-height: 240px;
+  overflow: hidden;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.9), transparent 26%),
+    linear-gradient(180deg, #cdefff 0%, #8ed6ff 42%, #4fb2e7 100%);
+}
+
+.game-board-header h3 {
+  margin: 0 0 12px;
+}
+
+.game-board {
+  position: relative;
+  min-height: 280px;
+  overflow: hidden;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #effbff 0%, #d3f2ff 100%);
+  border: 2px dashed rgba(82, 178, 242, 0.28);
+}
+
+.fail-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: rgba(28, 18, 14, 0.42);
+  backdrop-filter: blur(6px);
+  border-radius: 30px;
+}
+
+.fail-overlay-card {
+  width: min(88%, 420px);
+  padding: 28px;
+  border-radius: 30px;
+  text-align: center;
+  background: linear-gradient(180deg, #fff1e8 0%, #ffe3d5 100%);
+  box-shadow: 0 30px 60px rgba(20, 50, 75, 0.24);
+}
+
+.fail-overlay-card h3 {
+  margin: 14px 0 8px;
+  font-size: 2rem;
+}
+
+.fail-overlay-card p {
+  margin: 0 0 18px;
+  line-height: 1.7;
+}
+
+.fail-scene {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+}
+
+.fail-tiger,
+.fail-runner {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+}
+
+.fail-tiger {
+  background: linear-gradient(180deg, #ffd87a 0%, #ff9b52 100%);
+  font-size: 3.2rem;
+  transform: scale(1.12);
+}
+
+.fail-runner {
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 3rem;
+}
+
+@media (max-width: 640px) {
+  .chase-scene {
+    min-height: 220px;
+  }
+
+  .game-board {
+    min-height: 250px;
+  }
+
+  .fail-tiger,
+  .fail-runner {
+    width: 72px;
+    height: 72px;
+    border-radius: 22px;
+  }
+}
+
+.chase-scene .runner.caught {
+  transform: translateX(168px) scale(0.86) !important;
+}
+
+.chase-scene .tiger.attack {
+  transform: translateX(270px) scale(1.9) !important;
+}
+
+.worker-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.fail-worker-avatar {
+  opacity: 0.82;
+}
+
+/* Responsive TV-first overrides */
+.chase-scene {
+  --runner-shift: clamp(0px, 12vw, 150px);
+  --tiger-shift: clamp(0px, 22vw, 270px);
+}
+
+.runner {
+  right: clamp(84px, 10vw, 108px);
+}
+
+.runner.safe {
+  right: clamp(38px, 5vw, 52px);
+}
+
+.tiger {
+  left: clamp(20px, 3vw, 28px);
+}
+
+.runner.caught {
+  opacity: 0.55;
+  z-index: 2;
+}
+
+.tiger.attack {
+  z-index: 4;
+}
+
+.chase-scene .runner.caught {
+  transform: translateX(var(--runner-shift)) scale(0.82) !important;
+}
+
+.chase-scene .tiger.attack {
+  transform: translateX(var(--tiger-shift)) scale(1.9) !important;
+}
+
+.fail-scene {
+  position: relative;
+  width: clamp(148px, 22vw, 190px);
+  height: clamp(92px, 12vw, 118px);
+  margin: 0 auto;
+}
+
+.fail-tiger,
+.fail-runner {
+  position: absolute;
+  top: 10px;
+}
+
+.fail-tiger {
+  left: clamp(38px, 6vw, 58px);
+  z-index: 2;
+}
+
+.fail-runner {
+  left: clamp(60px, 9vw, 86px);
+  z-index: 1;
+  opacity: 0.74;
+}
+
+@media (max-width: 900px) {
+  .chase-scene {
+    --runner-shift: clamp(0px, 18vw, 120px);
+    --tiger-shift: clamp(0px, 32vw, 220px);
+  }
+}
+
+@media (max-width: 640px) {
+  .chase-scene {
+    --runner-shift: 92px;
+    --tiger-shift: 162px;
+  }
+
+  .fail-scene {
+    width: 148px;
+    height: 92px;
+  }
+
+  .fail-tiger,
+  .fail-runner {
+    width: 72px;
+    height: 72px;
+    border-radius: 22px;
+  }
+
+  .fail-tiger {
+    left: 40px;
+  }
+
+  .fail-runner {
+    left: 58px;
+  }
+}
+/* TV/large-screen chase overlap fix */
+.chase-scene .runner.caught {
+  right: clamp(92px, 10%, 160px) !important;
+  transform: scale(0.82) !important;
+  opacity: 0.45;
+  z-index: 2;
+}
+
+.chase-scene .tiger.attack {
+  left: auto !important;
+  right: clamp(70px, 9%, 138px) !important;
+  transform: scale(1.95) !important;
+  z-index: 4;
+}
+
+@media (max-width: 900px) {
+  .chase-scene .runner.caught {
+    right: 84px !important;
+    transform: scale(0.82) !important;
+  }
+
+  .chase-scene .tiger.attack {
+    right: 62px !important;
+    transform: scale(1.72) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .chase-scene .runner.caught {
+    right: 62px !important;
+    transform: scale(0.78) !important;
+  }
+
+  .chase-scene .tiger.attack {
+    right: 44px !important;
+    transform: scale(1.56) !important;
+  }
+}
+
+.word-question-card {
+  padding: 18px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: var(--shadow);
+}
+
+.word-question-meta {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.word-question-meta strong,
+.question-progress,
+.word-timer-inline {
+  font-weight: 800;
+}
+
+.word-mask-wrap {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.word-mask-label {
+  margin: 0 0 10px;
+  color: #5a6b81;
+}
+
+.word-mask {
+  font-size: clamp(2.4rem, 8vw, 4.6rem);
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  color: #21304a;
+}
+
+.word-timer-inline {
+  margin-top: 14px;
+  text-align: right;
+  color: #e06b39;
+}
+
+.word-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.word-choice-button {
+  border: none;
+  border-radius: 24px;
+  padding: 22px 18px;
+  background: linear-gradient(180deg, #fff7e7 0%, #fff1d4 100%);
+  color: #21304a;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 900;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.word-choice-button:hover:not(:disabled),
+.word-choice-button.selected {
+  transform: translateY(-3px);
+  background: linear-gradient(180deg, #ffe4a8 0%, #ffd169 100%);
+}
+
+.word-choice-button:disabled {
+  cursor: default;
+  opacity: 0.68;
+}
+
+.success-overlay {
+  background: rgba(21, 77, 32, 0.28);
+}
+
+.success-overlay-card {
+  background: linear-gradient(180deg, #eefee9 0%, #dffff1 100%);
+}
+
+.success-badge {
+  display: inline-grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 12px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, #8ee29d 0%, #50c96c 100%);
+  color: white;
+  font-size: 1.6rem;
+  font-weight: 900;
+}
+
+@media (max-width: 900px) {
+  .word-choice-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* compact tiger game layout */
+.game-topbar.compact {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.game-timer-box.compact {
+  width: min(100%, 240px);
+  min-width: 0;
+}
+
+.game-timer-box.compact strong {
+  display: block;
+  margin-bottom: 6px;
+  text-align: right;
+  font-size: clamp(1.45rem, 2.6vw, 1.95rem);
+  line-height: 1;
+}
+
+.game-timer-box.compact .game-timer-track {
+  height: 12px;
+}
+
+.tiger-game-shell.compact-layout {
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.chase-scene-card {
+  padding: 10px 12px;
+}
+
+.chase-scene {
+  min-height: 112px !important;
+  border-radius: 20px;
+}
+
+.water-back {
+  bottom: 44px;
+  height: 76px;
+}
+
+.water-front {
+  bottom: -32px;
+  height: 84px;
+}
+
+.safe-house {
+  right: 14px;
+  bottom: 24px;
+  width: 74px;
+  height: 82px;
+  padding-bottom: 10px;
+  border-radius: 18px 18px 14px 14px;
+  font-size: 1.55rem;
+}
+
+.safe-house::before {
+  top: -14px;
+  left: 12px;
+  width: 50px;
+  height: 28px;
+  border-radius: 14px 14px 6px 6px;
+}
+
+.runner,
+.tiger {
+  bottom: 22px;
+}
+
+.runner {
+  right: 76px;
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+}
+
+.runner.safe {
+  right: 34px;
+}
+
+.tiger {
+  left: 18px;
+  width: 62px;
+  height: 62px;
+  border-radius: 20px;
+  font-size: 2.05rem;
+}
+
+.chase-scene .runner.caught {
+  right: 46px !important;
+  transform: scale(0.76) !important;
+}
+
+.chase-scene .tiger.attack {
+  right: 34px !important;
+  transform: scale(1.55) !important;
+}
+
+.word-question-card.compact {
+  padding: 14px 18px;
+}
+
+.word-mask-wrap.compact {
+  margin-top: 10px;
+}
+
+.word-mask-wrap.compact .word-mask {
+  font-size: clamp(2rem, 6vw, 3.6rem);
+}
+
+.word-mask-label,
+.word-timer-inline {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  .chase-scene {
+    min-height: 104px !important;
+  }
+
+  .safe-house {
+    right: 12px;
+    bottom: 22px;
+    width: 68px;
+    height: 76px;
+    font-size: 1.4rem;
+  }
+
+  .runner {
+    right: 68px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .runner.safe {
+    right: 30px;
+  }
+
+  .tiger {
+    width: 58px;
+    height: 58px;
+  }
+
+  .chase-scene .runner.caught {
+    right: 42px !important;
+  }
+
+  .chase-scene .tiger.attack {
+    right: 30px !important;
+    transform: scale(1.46) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .game-timer-box.compact {
+    width: 100%;
+  }
+
+  .game-timer-box.compact strong {
+    font-size: 1.3rem;
+  }
+
+  .chase-scene-card {
+    padding: 8px 10px;
+  }
+
+  .chase-scene {
+    min-height: 96px !important;
+    border-radius: 18px;
+  }
+
+  .water-back {
+    bottom: 38px;
+    height: 64px;
+  }
+
+  .water-front {
+    bottom: -26px;
+    height: 72px;
+  }
+
+  .safe-house {
+    right: 10px;
+    bottom: 20px;
+    width: 60px;
+    height: 68px;
+    padding-bottom: 8px;
+    font-size: 1.2rem;
+  }
+
+  .safe-house::before {
+    top: -11px;
+    left: 10px;
+    width: 40px;
+    height: 22px;
+  }
+
+  .runner,
+  .tiger {
+    bottom: 20px;
+  }
+
+  .runner {
+    right: 60px;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+  }
+
+  .runner.safe {
+    right: 28px;
+  }
+
+  .tiger {
+    left: 14px;
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
+    font-size: 1.6rem;
+  }
+
+  .chase-scene .runner.caught {
+    right: 34px !important;
+    transform: scale(0.72) !important;
+  }
+
+  .chase-scene .tiger.attack {
+    right: 24px !important;
+    transform: scale(1.34) !important;
+  }
+}
+
+.word-category-group {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.word-category-group .eyebrow {
+  margin-bottom: 0;
+}
+
+.word-category-value {
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  font-weight: 900;
+  line-height: 1.1;
+  color: #172844;
+}
+
+@media (max-width: 640px) {
+  .word-category-value {
+    font-size: clamp(1.2rem, 4.6vw, 1.55rem);
+  }
+}
+
+.word-mask {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.4vw, 18px);
+}
+
+.word-mask-letter,
+.word-mask-blank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(54px, 7vw, 82px);
+  height: clamp(54px, 7vw, 82px);
+}
+
+.word-mask-letter {
+  font-size: clamp(2rem, 6vw, 3.6rem);
+  font-weight: 900;
+  color: #21304a;
+}
+
+.word-mask-blank {
+  border: 4px dashed rgba(33, 48, 74, 0.45);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.6);
+}
+
+@media (max-width: 640px) {
+  .word-mask {
+    gap: 8px;
+  }
+
+  .word-mask-letter,
+  .word-mask-blank {
+    width: 46px;
+    height: 46px;
+  }
+
+  .word-mask-blank {
+    border-width: 3px;
+    border-radius: 12px;
+  }
+}
+
+.word-mask-blank {
+  position: relative;
+  overflow: hidden;
+}
+
+.word-mask-blank.filled {
+  border-style: solid;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.word-mask-choice-text {
+  position: relative;
+  z-index: 2;
+  font-size: clamp(1.9rem, 5.6vw, 3.2rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.word-mask-blank.correct .word-mask-choice-text {
+  color: #2f6df6;
+}
+
+.word-mask-blank.incorrect .word-mask-choice-text {
+  color: #e24b4b;
+}
+
+.game-correct-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  display: grid;
+  place-items: center;
+  font-size: clamp(5rem, 16vw, 10rem);
+  font-weight: 900;
+  color: rgba(47, 109, 246, 0.28);
+  pointer-events: none;
+  animation: fadeCorrectMark 0.65s ease-out forwards;
+}
+
+@keyframes fadeCorrectMark {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  20% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.18);
+  }
+}
+
+@media (max-width: 640px) {
+  .word-mask-choice-text {
+    font-size: 1.75rem;
+  }
+
+  .game-correct-flash {
+    font-size: 4.4rem;
+  }
+}
+
+.chase-scene .runner.dynamic-runner {
+  left: var(--runner-left) !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+}
+
+.chase-scene .runner.dynamic-runner.safe {
+  left: var(--runner-left) !important;
+  right: auto !important;
+  transform: translateX(-50%) scale(0.98) !important;
+}
+
+.chase-scene .runner.dynamic-runner.caught {
+  left: var(--runner-left) !important;
+  right: auto !important;
+  transform: translateX(-50%) scale(0.78) !important;
+  opacity: 0.55;
+}
+
+.chase-scene .tiger.dynamic-tiger {
+  left: var(--tiger-left) !important;
+  right: auto !important;
+  transform: translateX(-50%) scale(var(--tiger-scale, 1)) !important;
+}
+
+.chase-scene .tiger.dynamic-tiger.attack {
+  left: var(--tiger-left) !important;
+  right: auto !important;
+  transform: translateX(-50%) scale(var(--tiger-scale, 1.65)) !important;
+}
+
+.chase-scene .runner.dynamic-runner,
+.chase-scene .runner.dynamic-runner.safe,
+.chase-scene .runner.dynamic-runner.caught {
+  transition: left 520ms cubic-bezier(0.22, 1, 0.36, 1), transform 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease !important;
+  will-change: left, transform;
 }
