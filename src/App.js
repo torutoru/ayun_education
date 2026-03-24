@@ -4,31 +4,32 @@ import KoreanPage from './korean/KoreanPage';
 import AvoidTigerPage from './korean/AvoidTigerPage';
 import MathPage from './math/MathPage';
 import EnglishPage from './english/EnglishPage';
+import PhonicsPage from './english/PhonicsPage';
 import homeImage from './assert/ay_home_1.jpeg';
 import homeImageTwo from './assert/ay_home_2.jpeg';
 import homeImageThree from './assert/ay_home_3.jpeg';
 
 const homeButtons = [
   {
-    label: '한글',
+    label: '\uD55C\uAE00',
     path: '/korean',
-    emoji: '가',
+    emoji: '\uAC00',
     accent: 'peach',
-    description: '자음, 모음, 쉬운 낱말을 재미있게 시작해요.'
+    description: '\uC790\uC74C, \uBAA8\uC74C, \uC18C\uB9AC \uAE30\uBCF8\uBD80\uD130 \uCC28\uADFC\uCC28\uADFC \uC2DC\uC791\uD574\uC694.'
   },
   {
-    label: '수학',
+    label: '\uC218\uD559',
     path: '/math',
     emoji: '1 2 3',
     accent: 'mint',
-    description: '숫자 세기, 비교하기, 쉬운 더하기를 배워요.'
+    description: '\uC22B\uC790 \uC138\uAE30, \uBE44\uAD50\uD558\uAE30, \uC26C\uC6B4 \uACC4\uC0B0\uC744 \uBC30\uC6CC\uC694.'
   },
   {
-    label: '영어',
+    label: '\uC601\uC5B4',
     path: '/english',
     emoji: 'A B C',
     accent: 'sky',
-    description: '알파벳, 색깔, 인사말을 따라 말해요.'
+    description: '\uC54C\uD30C\uBCB3, \uD30C\uB2C9\uC2A4, \uAE30\uBCF8 \uB2E8\uC5B4\uB97C \uC7AC\uBBF8\uC788\uAC8C \uC775\uD600\uC694.'
   }
 ];
 
@@ -36,7 +37,8 @@ const pageComponents = {
   '/korean': KoreanPage,
   '/avoid_tiger': AvoidTigerPage,
   '/math': MathPage,
-  '/english': EnglishPage
+  '/english': EnglishPage,
+  '/phonics': PhonicsPage
 };
 
 function getCurrentPath() {
@@ -47,30 +49,31 @@ function getCurrentPath() {
 function HomePage({ onNavigate }) {
   return (
     <div className="app-shell">
-      <div className="floating floating-star">★</div>
-      <div className="floating floating-heart">♥</div>
-      <div className="floating floating-cloud">☁</div>
+      <div className="floating floating-star">{'\u2605'}</div>
+      <div className="floating floating-heart">{'\u2665'}</div>
+      <div className="floating floating-cloud">{'\u2601'}</div>
       <main className="app home-page">
         <section className="hero">
           <div className="hero-copy">
             <span className="eyebrow">AYUN EDUCATION</span>
-            <h1>오늘은 어떤 놀이부터 시작할까?</h1>
+            <h1>{'\uC624\uB298\uC740 \uC5B4\uB5A4 \uACF5\uBD80\uB97C \uC2DC\uC791\uD560\uAE4C?'}</h1>
+            <p>{'\uC544\uC774\uAC00 \uBC1D\uACE0 \uD070 \uBC84\uD2BC\uC73C\uB85C \uACFC\uBAA9\uC744 \uACE0\uB974\uACE0, \uAC8C\uC784\uCC98\uB7FC \uC990\uAC81\uAC8C \uBC30\uC6B8 \uC218 \uC788\uB3C4\uB85D \uB9CC\uB4E0 \uD648 \uD654\uBA74\uC774\uC5D0\uC694.'}</p>
           </div>
           <div className="hero-stage">
             <div className="hero-photo-wrap">
-              <img className="hero-photo" src={homeImage} alt="아이 학습 홈 화면 장식" />
+              <img className="hero-photo" src={homeImage} alt="home hero" />
             </div>
             <div className="hero-photo-mini mini-peach">
-              <img className="hero-photo" src={homeImageTwo} alt="홈 화면 보조 사진 1" />
+              <img className="hero-photo" src={homeImageTwo} alt="home side 1" />
             </div>
             <div className="hero-photo-mini mini-yellow">
-              <img className="hero-photo" src={homeImageThree} alt="홈 화면 보조 사진 2" />
+              <img className="hero-photo" src={homeImageThree} alt="home side 2" />
             </div>
           </div>
         </section>
 
         <section className="button-section">
-          <h2>배우고 싶은 놀이를 눌러요</h2>
+          <h2>{'\uBC30\uC6B0\uACE0 \uC2F6\uC740 \uACFC\uBAA9\uC744 \uB20C\uB7EC\uC694'}</h2>
           <div className="home-grid">
             {homeButtons.map((button) => (
               <button
