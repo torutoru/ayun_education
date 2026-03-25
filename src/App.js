@@ -3,6 +3,8 @@ import './App.css';
 import KoreanPage from './korean/KoreanPage';
 import AvoidTigerPage from './korean/AvoidTigerPage';
 import MathPage from './math/MathPage';
+import BeakerFillPage from './math/BeakerFillPage';
+import BeakerFillMediumPage from './math/BeakerFillMediumPage';
 import EnglishPage from './english/EnglishPage';
 import PhonicsPage from './english/PhonicsPage';
 import homeImage from './assert/ay_home_1.jpeg';
@@ -37,6 +39,8 @@ const pageComponents = {
   '/korean': KoreanPage,
   '/avoid_tiger': AvoidTigerPage,
   '/math': MathPage,
+  '/beaker_fill': BeakerFillPage,
+  '/beaker_fill_medium': BeakerFillMediumPage,
   '/english': EnglishPage,
   '/phonics': PhonicsPage
 };
