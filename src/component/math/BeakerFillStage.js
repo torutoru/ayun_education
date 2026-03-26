@@ -7,7 +7,7 @@ function renderCells(total, filled, showGuideCells, showCellNumbers) {
     const className = [
       'beaker-unit-cell',
       isFilled ? 'filled' : 'empty',
-      !isFilled && !showGuideCells ? 'guide-hidden' : ''
+      !isFilled && !showGuideCells ? 'plain-empty' : ''
     ].filter(Boolean).join(' ');
 
     return (
@@ -16,7 +16,7 @@ function renderCells(total, filled, showGuideCells, showCellNumbers) {
         className={className}
         aria-label={`${level} ${isFilled ? 'filled' : 'empty'}`}
       >
-        {isFilled && showCellNumbers ? <span className="beaker-cell-number">{level}</span> : null}
+        {showCellNumbers ? <span className={isFilled ? 'beaker-cell-number' : 'beaker-cell-number empty'}>{level}</span> : null}
       </div>
     );
   });

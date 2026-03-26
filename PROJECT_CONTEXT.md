@@ -13,16 +13,26 @@
   - `/korean`
   - `/avoid_tiger`
   - `/math`
+  - `/beaker_fill`
+  - `/beaker_fill_medium`
   - `/english`
+  - `/phonics`
+  - `/alphabet_write`
 - 페이지 컨테이너
   - `src/App.js`
   - `src/korean/KoreanPage.js`
   - `src/korean/AvoidTigerPage.js`
   - `src/math/MathPage.js`
+  - `src/math/BeakerFillPage.js`
+  - `src/math/BeakerFillMediumPage.js`
   - `src/english/EnglishPage.js`
+  - `src/english/PhonicsPage.js`
+  - `src/english/AlphabetWritePage.js`
 - 과목별 컴포넌트 규칙
-  - 한글 관련 분리 컴포넌트는 `src/component/korean` 아래에 둔다.
-  - 앞으로도 기능 분리 시 과목별 컴포넌트는 `src/component/{subject}` 구조를 유지한다.
+  - 한글 관련 컴포넌트는 `src/component/korean` 아래에 둔다.
+  - 영어 관련 컴포넌트는 `src/component/english` 아래에 둔다.
+  - 수학 관련 컴포넌트는 `src/component/math` 아래에 둔다.
+  - 앞으로도 기능을 분리할 때는 `src/component/{subject}` 구조를 유지한다.
 
 ## 한글 게임 구조
 - 데이터 파일
@@ -39,60 +49,65 @@
   - `wordGameUtils`
 
 ## 호랑이 피하기 규칙
-- 총 문제 수는 5개다.
-- 총 제한시간은 35초다.
-- 거리 모델은 숫자 기반으로 계산한다.
+- 총 문제 수는 5개
+- 전체 제한 시간은 35초
+- 거리 모델은 숫자 기반으로 계산
   - 전체 거리: 10
   - 호랑이 시작 위치: 0
   - 사람 시작 위치: 5
   - 집 위치: 10
-- 호랑이는 시간 기준으로 계속 이동한다.
+- 호랑이는 시간 기준으로 계속 이동
   - 속도: 초당 `10 / 35`
-- 사람은 정답을 맞출 때마다 한 칸씩 이동한다.
+- 사람은 정답을 맞힐 때마다 한 칸씩 이동
   - `5 -> 6 -> 7 -> 8 -> 9 -> 10`
 - 판정 규칙
-  - 호랑이 위치가 사람 위치 이상이 되면 즉시 잡힌다.
-  - 사람이 위치 10에 도달하면 성공이다.
-- 즉, 실패 판정은 더 이상 "문제 하나를 7초 안에 못 맞춤"이 아니라, 전체 시간 흐름 속에서 호랑이와 사람의 실제 위치 비교로 계산한다.
-- 예시
-  - 사람이 한 문제도 못 맞춘 상태면 위치는 5다.
-  - 호랑이는 18초쯤 지나면 `18 * (10 / 35) = 5.14...` 위치가 되므로 사람을 잡는다.
+  - 호랑이 위치가 사람 위치 이상이면 즉시 실패
+  - 사람 위치가 10에 도달하면 성공
 
-## 현재 UI 동작
-- 선택한 글자는 빈칸 네모칸 안에 표시된다.
-- 오답은 빨간색, 정답은 파란색으로 표시된다.
-- 정답일 때는 게임 화면 전체에 큰 `O` 피드백이 잠깐 표시된다.
-- 사람은 정답 수에 따라 집 방향으로 점진적으로 이동한다.
-- 호랑이는 남은 시간이 아니라 실제 누적 경과시간 기준 위치로 이동한다.
+## 수학 게임 구조
+- 수학 메인에서는 물잔 채우기 쉬움/중간 두 버전 제공
+- 쉬움: 컵 안 가이드 칸과 채워진 칸 번호 표시
+- 중간: 컵 안 가이드 칸 숨김
+- 공통 로직은 `src/component/math/WaterCupGame.js` 사용
+- 한 문제당 보기 3개, 정답은 반드시 포함
+- 총 5문제 랜덤 진행
 
-## 작업 방식 규칙
-- 가능한 한 바로 구현까지 진행한다. 설명만 하고 끝내지 않는다.
-- 컴포넌트가 커지면 분리한다.
-- 한글 관련 컴포넌트는 반드시 `src/component/korean` 아래에 둔다.
+## 영어 게임 구조
+- 파닉스 게임
+  - `src/english/PhonicsPage.js`
+  - 카드 이미지와 발음 오디오 사용
+- 알파벳 쓰기 게임
+  - `src/english/AlphabetWritePage.js`
+  - `src/component/english/AlphabetDrawingCanvas.js`
+  - `src/component/english/AlphabetWritingGame.js`
+  - 현재 판별식은 브라우저 내 단순 비교 MVP 상태
+  - 실제 브라우저 내 ML 모델 전환이 필요함
+
+## 디자인 및 반응형 규칙
 - 스마트 TV 브라우저 사용을 전제로 반응형 레이아웃을 기본으로 고려한다.
-- 큰 화면, 모바일 화면, TV 화면 모두에서 의미가 유지되어야 한다.
-- 디자인 수정 시 고정 px만 쓰지 말고 `clamp`, 상대 배치, 반응형 기준을 우선 고려한다.
+- 전체 화면, 모바일, TV 화면 모두에서 의미가 유지되어야 한다.
+- 고정 px 값만으로 배치하지 말고 `clamp`, 상대값, 반응형 기준을 우선 사용한다.
+- 버튼과 텍스트는 멀리서도 잘 보여야 한다.
 
-## 인코딩 규칙
-- 모든 텍스트 파일은 UTF-8 기준으로 유지한다.
-- 가능하면 UTF-8 without BOM으로 저장한다.
-- PowerShell로 파일을 통째로 다시 쓸 때는 한글이 깨질 수 있으므로 주의한다.
-- PowerShell에서 파일을 쓸 경우
-  - 가능하면 기존 파일 일부만 수정한다.
-  - 통째로 다시 쓸 필요가 있으면 UTF-8 without BOM으로 저장한다.
-  - 한글 문자열이 깨질 가능성이 있으면 유니코드 이스케이프 또는 안전한 저장 방식을 사용한다.
-- 인코딩이 깨진 파일이 보이면 다음 작업 전에 먼저 파일을 정상화한다.
-- `PROJECT_CONTEXT.md`를 포함한 문서 파일도 같은 규칙을 따른다.
+## 인코딩 및 문서 규칙
+- 모든 텍스트 파일은 UTF-8 기준으로 저장한다.
+- 가능하면 UTF-8 without BOM을 유지한다.
+- 소스 코드와 문서에는 사람이 읽을 수 있는 실제 한글을 적는다.
+- `\uXXXX` 형태의 유니코드 이스케이프 한글은 사용하지 않는다.
+- PowerShell로 파일을 통째로 다시 쓸 때 한글이 깨질 수 있으므로 주의한다.
+- 한글이 깨진 파일을 발견하면 다음 작업 전에 먼저 정상 한글로 복구한다.
+- `PROJECT_CONTEXT.md`도 같은 규칙을 따른다.
 
 ## 주의 사항
-- 정적 호스팅에서 direct URL 접근 시 SPA rewrite 설정이 필요할 수 있다.
-- 스마트 TV 브라우저에서는 큰 원본 이미지가 느릴 수 있으므로 이미지 최적화가 중요하다.
-- 이미지 위치보다 파일 크기, 해상도, 포맷(WebP/AVIF), 디코딩 비용이 더 중요하다.
+- 정적 호스팅에서는 direct URL 접근 시 SPA rewrite 설정이 필요하다.
+- Netlify용 SPA redirect는 `public/_redirects`로 관리한다.
+- 스마트 TV 브라우저에서는 이미지 원본이 크면 느리므로 압축과 해상도 최적화가 중요하다.
 
 ## 다음 세션 시작 시 확인할 것
 - `PROJECT_CONTEXT.md`
 - `src/App.js`
 - `src/korean/AvoidTigerPage.js`
 - `src/component/korean`
-- `src/component/korean/wordGameUtils.js`
+- `src/component/math`
+- `src/component/english`
 - `src/App.css`

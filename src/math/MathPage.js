@@ -1,17 +1,19 @@
 import SubjectPage from '../shared/SubjectPage';
 
 const TEXT = {
-  highlight1: '\uC624\uB298\uC758 \uC22B\uC790: 5',
-  highlight2: '2\uAC1C\uC640 1\uAC1C\uB97C \uBE44\uAD50\uD574 \uBCF4\uAE30',
-  highlight3: '\uD06C\uACE0 \uC791\uC74C\uC744 \uBE44\uAD50\uD558\uAE30',
-  heading: '\uC218\uD559 \uAC8C\uC784 \uC120\uD0DD\uD558\uAE30',
-  description: '\uC22B\uC790\uC640 \uC591\uC744 \uB208\uC73C\uB85C \uBE44\uAD50\uD558\uACE0 \uC9C1\uC811 \uCC44\uC6CC\uBCF4\uB294 \uCCB4\uD5D8\uD615 \uC218\uD559 \uAC8C\uC784\uC744 \uC900\uBE44\uD588\uC5B4\uC694.',
-  easyTitle: '\uBB3C\uC794 \uCC44\uC6B0\uAE30(\uC26C\uC6C0)',
-  easyDescription: '\uCEF5 \uC548\uC5D0 \uBE48\uCE78 \uAC00\uC774\uB4DC\uAC00 \uBCF4\uC774\uB294 \uBC84\uC804\uC73C\uB85C \uC2DC\uC791\uD574\uC694.',
-  mediumTitle: '\uBB3C\uC794 \uCC44\uC6B0\uAE30(\uC911\uAC04)',
-  mediumDescription: '\uCEF5 \uC548\uC758 \uAC00\uC774\uB4DC \uC5C6\uC774 \uBB3C\uC758 \uB192\uC774\uB97C \uBCF4\uACE0 \uACC4\uC0B0\uD574\uC694.',
-  title: '\uC218\uD559 \uC5EC\uD589',
-  subtitle: '\uC22B\uC790\uB97C \uC138\uACE0, \uD06C\uAE30\uB97C \uBCF4\uACE0, \uAC04\uB2E8\uD55C \uADDC\uCE59\uC744 \uCC3E\uC544\uBD10\uC694.'
+  highlight1: '오늘의 숫자: 5',
+  highlight2: '2개와 1개를 비교해 보기',
+  highlight3: '크고 작음을 비교하기',
+  heading: '수학 게임 선택하기',
+  description: '숫자와 양을 눈으로 비교하고 직접 채워 보는 체험형 수학 게임을 준비했어요.',
+  easyTitle: '물잔 채우기(쉬움)',
+  easyDescription: '컵 안에 가이드 칸과 숫자가 보여서 시작하기 쉬운 버전이에요.',
+  mediumTitle: '물잔 채우기(중간)',
+  mediumDescription: '가이드 없이 물의 높이를 보고 계산하는 버전이에요.',
+  balanceTitle: '양팔 저울 맞추기',
+  balanceDescription: '왼쪽 돌과 같은 무게가 되도록 오른쪽 돌을 골라 저울을 수평으로 맞춰요.',
+  title: '수학 여행',
+  subtitle: '숫자를 세고, 크기를 보고, 간단한 규칙을 찾아봐요.'
 };
 
 const mathHighlights = [TEXT.highlight1, TEXT.highlight2, TEXT.highlight3];
@@ -28,23 +30,20 @@ function MathPage({ onNavigate }) {
       </div>
 
       <div className="submenu-grid">
-        <button
-          type="button"
-          className="submenu-button mint"
-          onClick={() => onNavigate('/beaker_fill')}
-        >
+        <button type="button" className="submenu-button mint" onClick={() => onNavigate('/beaker_fill')}>
           <span className="submenu-emoji mint">ML</span>
           <strong>{TEXT.easyTitle}</strong>
           <span>{TEXT.easyDescription}</span>
         </button>
-        <button
-          type="button"
-          className="submenu-button mint"
-          onClick={() => onNavigate('/beaker_fill_medium')}
-        >
+        <button type="button" className="submenu-button mint" onClick={() => onNavigate('/beaker_fill_medium')}>
           <span className="submenu-emoji mint">ML</span>
           <strong>{TEXT.mediumTitle}</strong>
           <span>{TEXT.mediumDescription}</span>
+        </button>
+        <button type="button" className="submenu-button mint" onClick={() => onNavigate('/balance_scale')}>
+          <span className="submenu-emoji mint">저울</span>
+          <strong>{TEXT.balanceTitle}</strong>
+          <span>{TEXT.balanceDescription}</span>
         </button>
       </div>
     </div>

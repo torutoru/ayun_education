@@ -5,33 +5,35 @@ import AvoidTigerPage from './korean/AvoidTigerPage';
 import MathPage from './math/MathPage';
 import BeakerFillPage from './math/BeakerFillPage';
 import BeakerFillMediumPage from './math/BeakerFillMediumPage';
+import BalanceScalePage from './math/BalanceScalePage';
 import EnglishPage from './english/EnglishPage';
 import PhonicsPage from './english/PhonicsPage';
+import AlphabetWritePage from './english/AlphabetWritePage';
 import homeImage from './assert/ay_home_1.jpeg';
 import homeImageTwo from './assert/ay_home_2.jpeg';
 import homeImageThree from './assert/ay_home_3.jpeg';
 
 const homeButtons = [
   {
-    label: '\uD55C\uAE00',
+    label: '한글',
     path: '/korean',
-    emoji: '\uAC00',
+    emoji: '가',
     accent: 'peach',
-    description: '\uC790\uC74C, \uBAA8\uC74C, \uC18C\uB9AC \uAE30\uBCF8\uBD80\uD130 \uCC28\uADFC\uCC28\uADFC \uC2DC\uC791\uD574\uC694.'
+    description: '자음, 모음, 소리 기본부터 차근차근 시작해요.'
   },
   {
-    label: '\uC218\uD559',
+    label: '수학',
     path: '/math',
     emoji: '1 2 3',
     accent: 'mint',
-    description: '\uC22B\uC790 \uC138\uAE30, \uBE44\uAD50\uD558\uAE30, \uC26C\uC6B4 \uACC4\uC0B0\uC744 \uBC30\uC6CC\uC694.'
+    description: '숫자 세기, 비교하기, 쉬운 계산을 배워요.'
   },
   {
-    label: '\uC601\uC5B4',
+    label: '영어',
     path: '/english',
     emoji: 'A B C',
     accent: 'sky',
-    description: '\uC54C\uD30C\uBCB3, \uD30C\uB2C9\uC2A4, \uAE30\uBCF8 \uB2E8\uC5B4\uB97C \uC7AC\uBBF8\uC788\uAC8C \uC775\uD600\uC694.'
+    description: '알파벳, 파닉스, 기본 단어를 재미있게 익혀요.'
   }
 ];
 
@@ -41,27 +43,29 @@ const pageComponents = {
   '/math': MathPage,
   '/beaker_fill': BeakerFillPage,
   '/beaker_fill_medium': BeakerFillMediumPage,
+  '/balance_scale': BalanceScalePage,
   '/english': EnglishPage,
-  '/phonics': PhonicsPage
+  '/phonics': PhonicsPage,
+  '/alphabet_write': AlphabetWritePage
 };
 
 function getCurrentPath() {
-  const { pathname } = window.location;
+  const pathname = window.location.pathname;
   return pageComponents[pathname] ? pathname : '/';
 }
 
 function HomePage({ onNavigate }) {
   return (
     <div className="app-shell">
-      <div className="floating floating-star">{'\u2605'}</div>
-      <div className="floating floating-heart">{'\u2665'}</div>
-      <div className="floating floating-cloud">{'\u2601'}</div>
+      <div className="floating floating-star">*</div>
+      <div className="floating floating-heart">o</div>
+      <div className="floating floating-cloud">~</div>
       <main className="app home-page">
         <section className="hero">
           <div className="hero-copy">
             <span className="eyebrow">AYUN EDUCATION</span>
-            <h1>{'\uC624\uB298\uC740 \uC5B4\uB5A4 \uACF5\uBD80\uB97C \uC2DC\uC791\uD560\uAE4C?'}</h1>
-            <p>{'\uC544\uC774\uAC00 \uBC1D\uACE0 \uD070 \uBC84\uD2BC\uC73C\uB85C \uACFC\uBAA9\uC744 \uACE0\uB974\uACE0, \uAC8C\uC784\uCC98\uB7FC \uC990\uAC81\uAC8C \uBC30\uC6B8 \uC218 \uC788\uB3C4\uB85D \uB9CC\uB4E0 \uD648 \uD654\uBA74\uC774\uC5D0\uC694.'}</p>
+            <h1>{'오늘은 어떤 공부를 시작할까?'}</h1>
+            <p>{'아이가 밝고 큰 버튼으로 과목을 고르고, 게임처럼 즐겁게 배울 수 있도록 만든 홈 화면이에요.'}</p>
           </div>
           <div className="hero-stage">
             <div className="hero-photo-wrap">
@@ -77,13 +81,13 @@ function HomePage({ onNavigate }) {
         </section>
 
         <section className="button-section">
-          <h2>{'\uBC30\uC6B0\uACE0 \uC2F6\uC740 \uACFC\uBAA9\uC744 \uB20C\uB7EC\uC694'}</h2>
+          <h2>{'배우고 싶은 과목을 눌러요'}</h2>
           <div className="home-grid">
             {homeButtons.map((button) => (
               <button
                 type="button"
                 key={button.path}
-                className={`home-card ${button.accent}`}
+                className={['home-card', button.accent].join(' ')}
                 onClick={() => onNavigate(button.path)}
               >
                 <span className="home-card-emoji">{button.emoji}</span>

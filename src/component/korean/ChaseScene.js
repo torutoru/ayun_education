@@ -20,7 +20,7 @@ function ChaseScene({ tigerPosition, playerPosition, isSuccess, isCatching, isFa
         <div className="stage-overlay">
           <div className="water-layer water-back" />
           <div className="water-layer water-front" />
-          <div className="safe-house">{'\uC9D1'}</div>
+          <div className="safe-house">{'집'}</div>
         </div>
 
         <div

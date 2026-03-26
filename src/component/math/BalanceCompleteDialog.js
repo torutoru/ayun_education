@@ -1,18 +1,18 @@
 const TEXT = {
   title: '끝났어요',
-  description: '물잔 채우기 문제 5개를 모두 맞혔어요.',
+  description: '양팔 저울 문제 5개를 모두 맞혔어요.',
   confirm: '다시 하기'
 };
 
-function BeakerCompleteDialog({ open, onConfirm }) {
+function BalanceCompleteDialog({ open, onConfirm }) {
   if (!open) {
     return null;
   }
 
   return (
     <div className="beaker-dialog-backdrop" role="presentation">
-      <div className="beaker-dialog-card" role="dialog" aria-modal="true" aria-labelledby="beaker-complete-title">
-        <strong id="beaker-complete-title" className="beaker-dialog-title">{TEXT.title}</strong>
+      <div className="beaker-dialog-card" role="dialog" aria-modal="true" aria-labelledby="balance-complete-title">
+        <strong id="balance-complete-title" className="beaker-dialog-title">{TEXT.title}</strong>
         <p className="beaker-dialog-description">{TEXT.description}</p>
         <button type="button" className="submenu-button mint beaker-dialog-button" onClick={onConfirm}>
           <strong>{TEXT.confirm}</strong>
@@ -22,4 +22,4 @@ function BeakerCompleteDialog({ open, onConfirm }) {
   );
 }
 
-export default BeakerCompleteDialog;
+export default BalanceCompleteDialog;

@@ -194,7 +194,7 @@ function WaterCupGame({ title, onNavigate, showGuideCells, showCellNumbers = fal
     <div className="app-shell">
       <main className="app detail-page mint beaker-page">
         <button type="button" className="back-button" onClick={() => onNavigate('/math')}>
-          {'\uB4A4\uB85C'}
+          {'뒤로'}
         </button>
 
         <section className="detail-hero game-hero">

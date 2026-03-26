@@ -2,15 +2,15 @@ import gameData from '../../game_data/korean/game_data.json';
 import exampleData from '../../game_data/korean/example.json';
 
 export const CATEGORY_LABELS = {
-  animal: '\uB3D9\uBB3C',
-  fruit: '\uACFC\uC77C',
-  ride: '\uD0C8\uAC83',
-  funiture: '\uAC00\uAD6C',
-  clothing: '\uC637',
-  food: '\uC74C\uC2DD',
-  nature: '\uC790\uC5F0',
-  color: '\uC0C9\uAE54',
-  people: '\uC0AC\uB78C'
+  animal: '동물',
+  fruit: '과일',
+  ride: '탈것',
+  funiture: '가구',
+  clothing: '옷',
+  food: '음식',
+  nature: '자연',
+  color: '색깔',
+  people: '사람'
 };
 
 export const QUESTION_DURATION = 7000;
@@ -21,7 +21,7 @@ export const TIGER_START_POSITION = 0;
 export const PLAYER_START_POSITION = 5;
 export const HOME_POSITION = 10;
 export const TIGER_SPEED_PER_SECOND = TOTAL_DISTANCE / (TOTAL_GAME_DURATION / 1000);
-export const COUNTDOWN_STEPS = ['3', '2', '1', '\uC2DC\uC791'];
+export const COUNTDOWN_STEPS = ['3', '2', '1', '시작'];
 export const FEEDBACK_DELAY_MS = 700;
 export const CATCH_ANIMATION_MS = 900;
 

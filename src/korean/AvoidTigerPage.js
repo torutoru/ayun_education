@@ -26,7 +26,7 @@ function AvoidTigerPage({ onNavigate }) {
   const solvedCountRef = useRef(0);
   const [timeLeft, setTimeLeft] = useState(TOTAL_GAME_DURATION);
   const [status, setStatus] = useState('idle');
-  const [message, setMessage] = useState('\uC2DC\uC791 \uBC84\uD2BC\uC744 \uB204\uB974\uBA74 \uCE74\uC6B4\uD2B8\uB2E4\uC6B4 \uB4A4\uC5D0 \uBC14\uB85C \uAC8C\uC784\uC774 \uC2DC\uC791\uB3FC\uC694.');
+  const [message, setMessage] = useState('시작 버튼을 누르면 카운트다운 뒤에 바로 게임이 시작돼요.');
   const [selectedChoice, setSelectedChoice] = useState('');
   const [dialogState, setDialogState] = useState('ready');
   const [countdownText, setCountdownText] = useState('3');
@@ -87,17 +87,17 @@ function AvoidTigerPage({ onNavigate }) {
   const triggerFailSequence = () => {
     clearGameTimers();
     setStatus('catching');
-    setMessage('\uD638\uB791\uC774\uAC00 \uC0AC\uB78C\uC744 \uC7A1\uC73C\uB7EC \uB2EC\uB824\uC624\uACE0 \uC788\uC5B4\uC694.');
+    setMessage('호랑이가 사람을 잡으러 달려오고 있어요.');
     failTimeoutRef.current = window.setTimeout(() => {
       setStatus('fail');
-      setMessage('\uD638\uB791\uC774\uAC00 \uC0AC\uB78C\uC744 \uC7A1\uC558\uC5B4\uC694. \uB2E4\uC2DC \uB3C4\uC804\uD574\uC694.');
+      setMessage('호랑이가 사람을 잡았어요. 다시 도전해요.');
     }, CATCH_ANIMATION_MS);
   };
 
   const beginRunningQuestion = () => {
     setStatus('running');
     setSelectedChoice('');
-    setMessage('\uBCF4\uAE30\uC5D0\uC11C \uBE48\uCE78\uC5D0 \uB4E4\uC5B4\uAC08 \uD55C \uAE00\uC790\uB97C \uACE8\uB77C\uC694.');
+    setMessage('보기에서 빈칸에 들어갈 한 글자를 골라요.');
   };
 
   const startGlobalTimer = () => {
@@ -137,7 +137,7 @@ function AvoidTigerPage({ onNavigate }) {
   const openStartDialog = () => {
     clearCountdowns();
     resetGameState();
-    setMessage('\uC2DC\uC791 \uBC84\uD2BC\uC744 \uB204\uB974\uBA74 \uCE74\uC6B4\uD2B8\uB2E4\uC6B4 \uB4A4\uC5D0 \uBC14\uB85C \uAC8C\uC784\uC774 \uC2DC\uC791\uB3FC\uC694.');
+    setMessage('시작 버튼을 누르면 카운트다운 뒤에 바로 게임이 시작돼요.');
     setDialogState('ready');
     setCountdownText('3');
   };
@@ -171,7 +171,7 @@ function AvoidTigerPage({ onNavigate }) {
     setSelectedChoice(choice);
 
     if (choice !== currentQuestion.missingSyllable) {
-      setMessage('\uC544\uC9C1 \uC544\uB2C8\uC5D0\uC694. \uBE48\uCE78\uC5D0 \uB4E4\uC5B4\uAC08 \uAE00\uC790\uB97C \uB2E4\uC2DC \uACE8\uB77C\uBCF4\uC138\uC694.');
+      setMessage('아직 아니에요. 빈칸에 들어갈 글자를 다시 골라보세요.');
       return;
     }
 
@@ -183,12 +183,12 @@ function AvoidTigerPage({ onNavigate }) {
 
     if (nextSolvedCount >= QUESTION_COUNT) {
       setStatus('success');
-      setMessage('\uC131\uACF5! \uC0AC\uB78C\uC774 \uC9D1\uC5D0 \uBB34\uC0AC\uD788 \uB3C4\uCC29\uD588\uC5B4\uC694.');
+      setMessage('성공! 사람이 집에 무사히 도착했어요.');
       return;
     }
 
     setStatus('feedback');
-    setMessage(`\uC815\uB2F5! ${currentQuestion.answerWord} \uC644\uC131\uD588\uC5B4\uC694.`);
+    setMessage(`정답! ${currentQuestion.answerWord} 완성했어요.`);
     feedbackTimeoutRef.current = window.setTimeout(() => {
       setCurrentIndex((prev) => prev + 1);
       beginRunningQuestion();
@@ -200,15 +200,15 @@ function AvoidTigerPage({ onNavigate }) {
     <div className="app-shell">
       <main className="app detail-page peach game-page">
         <button type="button" className="back-button" onClick={() => onNavigate('/korean')}>
-          {'\uB4A4\uB85C'}
+          {'뒤로'}
         </button>
 
         <section className="detail-hero game-hero">
-          <div className="detail-badge">{'\uD638'}</div>
+          <div className="detail-badge">{'호'}</div>
           <div>
             <span className="eyebrow">GAME PAGE</span>
-            <h1>{'\uD638\uB791\uC774 \uD53C\uD558\uAE30'}</h1>
-            <p>{'\uCE74\uD14C\uACE0\uB9AC\uB97C \uBCF4\uACE0 \uBCF4\uAE30 \uC911 \uD55C \uAE00\uC790\uB97C \uACE8\uB77C \uBE48\uCE78\uC744 \uCC44\uC6CC\uBCF4\uC138\uC694.'}</p>
+            <h1>{'호랑이 피하기'}</h1>
+            <p>{'카테고리를 보고 보기 중 한 글자를 골라 빈칸을 채워보세요.'}</p>
           </div>
         </section>
 
@@ -216,7 +216,7 @@ function AvoidTigerPage({ onNavigate }) {
           <div className="detail-card game-card tiger-card">
             <div className="game-topbar compact">
               <div className="game-timer-box compact">
-                <strong>{`${(timeLeft / 1000).toFixed(1)}\uCD08`}</strong>
+                <strong>{`${(timeLeft / 1000).toFixed(1)}초`}</strong>
                 <div className="game-timer-track">
                   <div className="game-timer-fill" style={{ transform: `scaleX(${timeRatio})` }} />
                 </div>

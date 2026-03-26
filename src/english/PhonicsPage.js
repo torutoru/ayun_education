@@ -73,8 +73,8 @@ function PhonicsPage({ onNavigate }) {
           <div className="detail-badge">Ph</div>
           <div>
             <span className="eyebrow">ENGLISH GAME</span>
-            <h1>[파닉스] 알파벳 단어</h1>
-            <p>파닉스 음성과 카드 이미지를 함께 보면서 알파벳 발음을 익히는 페이지입니다.</p>
+            <h1>[파닉스] 알파벳 단어 발음 게임</h1>
+            <p>파닉스 소리와 카드 이미지를 함께 보면서 알파벳 발음을 익히는 페이지입니다.</p>
           </div>
         </section>
 
