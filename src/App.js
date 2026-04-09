@@ -9,6 +9,8 @@ import BalanceScalePage from './math/BalanceScalePage';
 import EnglishPage from './english/EnglishPage';
 import PhonicsPage from './english/PhonicsPage';
 import AlphabetWritePage from './english/AlphabetWritePage';
+import ArtPage from './art/ArtPage';
+import ArtStudioPage from './art/ArtStudioPage';
 import homeImage from './assert/ay_home_1.jpeg';
 import homeImageTwo from './assert/ay_home_2.jpeg';
 import homeImageThree from './assert/ay_home_3.jpeg';
@@ -34,6 +36,13 @@ const homeButtons = [
     emoji: 'A B C',
     accent: 'sky',
     description: '알파벳, 파닉스, 기본 단어를 재미있게 익혀요.'
+  },
+  {
+    label: '미술',
+    path: '/art',
+    emoji: '🎨',
+    accent: 'sun',
+    description: '그림을 그리고 색칠하면서 자유롭게 표현해요.'
   }
 ];
 
@@ -46,7 +55,9 @@ const pageComponents = {
   '/balance_scale': BalanceScalePage,
   '/english': EnglishPage,
   '/phonics': PhonicsPage,
-  '/alphabet_write': AlphabetWritePage
+  '/alphabet_write': AlphabetWritePage,
+  '/art': ArtPage,
+  '/art_studio': ArtStudioPage
 };
 
 function getCurrentPath() {

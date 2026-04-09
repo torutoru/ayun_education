@@ -210,7 +210,7 @@ button {
 
 .home-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 18px;
 }
 
@@ -255,6 +255,10 @@ button {
   background: linear-gradient(180deg, #daf1ff 0%, #f2faff 100%);
 }
 
+.home-card.sun {
+  background: linear-gradient(180deg, #fff2bf 0%, #fffaf0 100%);
+}
+
 .detail-page {
   padding: 28px;
   border-radius: 36px;
@@ -272,6 +276,10 @@ button {
 
 .detail-page.sky {
   border: 3px solid rgba(82, 178, 242, 0.28);
+}
+
+.detail-page.sun {
+  border: 3px solid rgba(245, 158, 11, 0.3);
 }
 
 .back-button,
@@ -487,6 +495,11 @@ button {
   border: 2px solid rgba(255, 143, 90, 0.28);
 }
 
+.submenu-button.sun {
+  border: 2px solid rgba(245, 158, 11, 0.28);
+  background: linear-gradient(180deg, #fff4cc 0%, #fffaf0 100%);
+}
+
 .submenu-emoji {
   display: inline-grid;
   place-items: center;
@@ -497,6 +510,10 @@ button {
   color: white;
   font-size: 1.6rem;
   font-weight: 900;
+}
+
+.submenu-emoji.sun {
+  background: linear-gradient(135deg, #fbbf24, #f97316);
 }
 
 .game-page {
@@ -3227,5 +3244,201 @@ button {
   .balance-pivot {
     order: 2;
     margin-top: 0;
+  }
+}
+
+.art-page {
+  border: 3px solid rgba(245, 158, 11, 0.3);
+}
+
+.art-studio-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.art-board-card {
+  display: grid;
+  gap: 18px;
+}
+
+.art-board-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.art-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 250, 240, 0.98), rgba(255, 245, 221, 0.98));
+  border: 2px solid rgba(245, 158, 11, 0.14);
+}
+
+.art-toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.art-toolbar-divider {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(24, 54, 79, 0.12);
+}
+
+.art-icon-button,
+.art-size-button {
+  width: 62px;
+  height: 62px;
+  border: 2px solid rgba(245, 158, 11, 0.18);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.98);
+  color: #18364f;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(33, 48, 74, 0.08);
+}
+
+.art-icon-button {
+  font-size: 1.8rem;
+  font-weight: 900;
+}
+
+.art-icon-button.active,
+.art-size-button.active {
+  background: linear-gradient(135deg, #fbbf24, #f97316);
+  color: #fff;
+  border-color: transparent;
+}
+
+.art-icon-button.clear {
+  font-size: 1.65rem;
+}
+
+.art-size-dot {
+  display: block;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.art-size-dot.size-8 {
+  width: 10px;
+  height: 10px;
+}
+
+.art-size-dot.size-16 {
+  width: 16px;
+  height: 16px;
+}
+
+.art-size-dot.size-28 {
+  width: 24px;
+  height: 24px;
+}
+
+.art-color-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.art-color-swatch {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 10px;
+  border: 2px solid rgba(24, 54, 79, 0.14);
+  cursor: pointer;
+  box-shadow: inset 0 3px 8px rgba(255, 255, 255, 0.2);
+}
+
+.art-color-swatch.active {
+  border-color: #18364f;
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 8px 16px rgba(24, 54, 79, 0.16);
+}
+
+.art-status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.14);
+  color: #8a4b08;
+  font-weight: 900;
+}
+
+.art-board-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9.2;
+  border-radius: 32px;
+  overflow: hidden;
+  border: 4px solid rgba(245, 158, 11, 0.18);
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.92), transparent 26%),
+    linear-gradient(180deg, #fffef8 0%, #fff8df 100%);
+  box-shadow: inset 0 0 0 8px rgba(255, 255, 255, 0.58);
+}
+
+.art-board-wrap.plain-canvas {
+  background: #ffffff;
+}
+
+.art-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.art-paint-canvas {
+  z-index: 1;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+@media (max-width: 1080px) {
+  .art-studio-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .art-board-header {
+    flex-direction: column;
+  }
+
+  .art-toolbar {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .art-toolbar-divider {
+    width: 100%;
+    height: 1px;
+  }
+
+  .art-icon-button,
+  .art-size-button {
+    width: 56px;
+    height: 56px;
+  }
+
+  .art-color-swatch {
+    width: 30px;
+    height: 30px;
   }
 }
