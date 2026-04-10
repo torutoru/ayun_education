@@ -11,6 +11,7 @@ import PhonicsPage from './english/PhonicsPage';
 import AlphabetWritePage from './english/AlphabetWritePage';
 import ArtPage from './art/ArtPage';
 import ArtStudioPage from './art/ArtStudioPage';
+import ArtGalleryPage from './art/ArtGalleryPage';
 import homeImage from './assert/ay_home_1.jpeg';
 import homeImageTwo from './assert/ay_home_2.jpeg';
 import homeImageThree from './assert/ay_home_3.jpeg';
@@ -57,7 +58,8 @@ const pageComponents = {
   '/phonics': PhonicsPage,
   '/alphabet_write': AlphabetWritePage,
   '/art': ArtPage,
-  '/art_studio': ArtStudioPage
+  '/art_studio': ArtStudioPage,
+  '/art_gallery': ArtGalleryPage
 };
 
 function getCurrentPath() {

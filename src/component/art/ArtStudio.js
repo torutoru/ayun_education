@@ -3,9 +3,11 @@ import { ANIMATION_OPTIONS } from '../../art/animationOptions';
 import {
   createAnimation,
   createImage3d,
+  createRemesh,
   createRigging,
   getAnimation,
   getImage3d,
+  getRemesh,
   getRigging
 } from '../../art/artPipelineApi';
 import { createBlobKey, getBlob, listJobs, saveBlob, saveJob } from '../../art/artStorage';
@@ -32,6 +34,7 @@ const BRUSH_SIZES = [8, 16, 28];
 const ACTIVE_STATUSES = new Set([
   'uploading-image',
   'image3d-pending',
+  'remesh-pending',
   'rigging-pending',
   'animation-pending',
   'downloading-glb'
@@ -46,6 +49,11 @@ const PIPELINE_STEPS = [
     key: 'image3d',
     label: '3D 변환',
     statuses: ['image3d-pending', 'image3d-succeeded']
+  },
+  {
+    key: 'remesh',
+    label: '리메시',
+    statuses: ['remesh-pending', 'remesh-succeeded']
   },
   {
     key: 'rigging',
@@ -138,6 +146,10 @@ function getStatusCopy(status) {
       return '3D 모델 생성 완료';
     case 'rigging-pending':
       return '캐릭터에 뼈대를 넣는 중';
+    case 'remesh-pending':
+      return '리깅 전에 모델을 가볍게 정리하는 중';
+    case 'remesh-succeeded':
+      return '리메시 완료';
     case 'rigging-succeeded':
       return '리깅 완료';
     case 'animation-pending':
@@ -326,7 +338,7 @@ function ArtStudio() {
         });
       }
 
-      if (!currentJob.riggingTaskId) {
+      if (!currentJob.remeshTaskId) {
         const imageTaskResult = await waitForTask(currentJob, currentJob.image3dTaskId, getImage3d, 'image3d-pending');
         currentJob = await mergeJob(imageTaskResult.job, {
           status: 'image3d-succeeded',
@@ -336,8 +348,25 @@ function ArtStudio() {
           stageMessage: getStatusCopy('image3d-succeeded')
         });
 
-        setFeedbackMessage('3D 모델이 준비되어 뼈대 넣기 단계로 넘어가요.');
-        const riggingStart = await createRigging(currentJob.image3dTaskId);
+        setFeedbackMessage('리깅 전에 모델을 가볍게 정리하고 있어요.');
+        const remeshStart = await createRemesh(currentJob.image3dTaskId);
+        currentJob = await mergeJob(currentJob, {
+          remeshTaskId: remeshStart.taskId,
+          status: 'remesh-pending',
+          stageMessage: getStatusCopy('remesh-pending')
+        });
+      }
+
+      if (!currentJob.riggingTaskId) {
+        const remeshTaskResult = await waitForTask(currentJob, currentJob.remeshTaskId, getRemesh, 'remesh-pending');
+        currentJob = await mergeJob(remeshTaskResult.job, {
+          status: 'remesh-succeeded',
+          remeshGlbUrl: remeshTaskResult.task.model_urls?.glb || '',
+          stageMessage: getStatusCopy('remesh-succeeded')
+        });
+
+        setFeedbackMessage('리메시가 끝나서 이제 캐릭터에 뼈대를 넣어요.');
+        const riggingStart = await createRigging(currentJob.remeshTaskId);
         currentJob = await mergeJob(currentJob, {
           riggingTaskId: riggingStart.taskId,
           status: 'rigging-pending',
@@ -365,9 +394,10 @@ function ArtStudio() {
 
       if (!currentJob.finalGlbBlobKey) {
         const animationTaskResult = await waitForTask(currentJob, currentJob.animationTaskId, getAnimation, 'animation-pending');
+        const animationResult = animationTaskResult.task.result || {};
         currentJob = await mergeJob(animationTaskResult.job, {
           status: 'animation-succeeded',
-          finalGlbUrl: animationTaskResult.task.animation_glb_url || '',
+          finalGlbUrl: animationTaskResult.task.animation_glb_url || animationResult.animation_glb_url || '',
           finalExpiresAt: animationTaskResult.task.expires_at || null,
           stageMessage: getStatusCopy('animation-succeeded')
         });

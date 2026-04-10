@@ -37,6 +37,20 @@ export function getRigging(taskId) {
   return request(`/.netlify/functions/get-rigging?taskId=${encodeURIComponent(taskId)}`);
 }
 
+export function createRemesh(inputTaskId) {
+  return request('/.netlify/functions/create-remesh', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ inputTaskId })
+  });
+}
+
+export function getRemesh(taskId) {
+  return request(`/.netlify/functions/get-remesh?taskId=${encodeURIComponent(taskId)}`);
+}
+
 export function createAnimation(rigTaskId, actionId) {
   return request('/.netlify/functions/create-animation', {
     method: 'POST',

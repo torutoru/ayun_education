@@ -90,6 +90,29 @@ function getRiggingTask(taskId) {
   });
 }
 
+function createRemeshTask({ inputTaskId }) {
+  return requestMeshy('/remesh', {
+    method: 'POST',
+    body: JSON.stringify({
+      input_task_id: inputTaskId,
+      target_formats: ['glb'],
+      topology: 'triangle',
+      target_polycount: 120000,
+      resize_height: 1.1,
+      origin_at: 'bottom'
+    })
+  });
+}
+
+function getRemeshTask(taskId) {
+  return requestMeshy(`/remesh/${encodeURIComponent(taskId)}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': undefined
+    }
+  });
+}
+
 function createAnimationTask({ rigTaskId, actionId }) {
   return requestMeshy('/animations', {
     method: 'POST',
@@ -118,6 +141,8 @@ module.exports = {
   getImageTo3DTask,
   createRiggingTask,
   getRiggingTask,
+  createRemeshTask,
+  getRemeshTask,
   createAnimationTask,
   getAnimationTask
 };

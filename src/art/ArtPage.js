@@ -23,6 +23,11 @@ function ArtPage({ onNavigate }) {
           <strong>그림판 놀이터</strong>
           <span>그림을 그린 뒤 3D 모델, 리깅, 애니메이션 파이프라인으로 이어 가요.</span>
         </button>
+        <button type="button" className="submenu-button sun" onClick={() => onNavigate('/art_gallery')}>
+          <span className="submenu-emoji sun">3D</span>
+          <strong>3D 그림 갤러리</strong>
+          <span>IndexedDB에 저장된 3D 그림을 골라 다시 재생해요.</span>
+        </button>
       </div>
     </div>
   );

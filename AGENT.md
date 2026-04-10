@@ -142,8 +142,10 @@ npm run build
 ### 미술
 - 메인 페이지: `src/art/ArtPage.js`
 - 그림판 페이지: `src/art/ArtStudioPage.js`
+- 갤러리 페이지: `src/art/ArtGalleryPage.js`
 - 핵심 컴포넌트: `src/component/art/ArtStudio.js`
 - 3D 재생 컴포넌트: `src/component/art/ArtModelViewer.js`
+- 갤러리 컴포넌트: `src/component/art/ArtGallery.js`
 - 프론트 API 계층: `src/art/artPipelineApi.js`
 - 로컬 저장 계층: `src/art/artStorage.js`
 - 애니메이션 옵션: `src/art/animationOptions.js`
@@ -159,6 +161,8 @@ npm run build
 - 최종 animated GLB를 IndexedDB에 저장
 - 저장된 GLB를 브라우저에서 다시 재생
 - 그림판 놀이터 화면 본문은 `CANVAS` 중심으로만 유지하고, 진행 상태는 작업 다이얼로그로 보여 준다
+- 미술 서브메뉴에는 `그림판 놀이터`와 같은 레벨로 `3D 그림 갤러리`가 있다
+- 갤러리 화면은 IndexedDB에 저장된 GLB 목록을 보여 주고, 선택한 항목을 3D로 렌더링한다
 
 구현 메모:
 - 그림판은 단일 캔버스 구조다
@@ -194,16 +198,38 @@ Meshy 연동 구조:
 - 단계별 함수:
   - `create-image3d`
   - `get-image3d`
+  - `create-remesh`
+  - `get-remesh`
   - `create-rigging`
   - `get-rigging`
   - `create-animation`
   - `get-animation`
-- 프론트는 각 단계를 순차 호출하면서 상태를 저장하고, 최종 `animation_glb_url`에서 GLB Blob을 받아 IndexedDB에 보관한다
+- 프론트는 각 단계를 순차 호출하면서 상태를 저장하고, `image-to-3d -> remesh -> rigging -> animation` 순서로 진행한 뒤 최종 GLB Blob을 받아 IndexedDB에 보관한다
 
 필수 환경변수:
 - `MESHY_API_KEY`
 - 선택값:
   - `MESHY_IMAGE_MODEL`
+
+로컬 개발:
+- 로컬 함수 테스트는 `netlify dev` 기준으로 진행한다
+- 프로젝트에는 `netlify-cli`가 dev dependency로 설치되어 있다
+- 실행 스크립트: `npm run dev` 또는 `npm run dev:netlify`
+- 루트 `.env` 파일에서 다음 값을 읽는다
+  - `MESHY_API_KEY`
+  - `MESHY_IMAGE_MODEL`
+- CRA 개발 서버(`3000`)에서 상대경로 `/.netlify/functions/*` 호출이 가능하도록 `src/setupProxy.js`에서 Netlify dev(`8888`)로 프록시한다
+- 로컬 프론트가 `3000`에서 떠 있어도 함수 요청은 `8888`로 전달된다
+- 프록시 대상 기본값은 `.env`의 `REACT_APP_FUNCTIONS_PROXY_TARGET=http://localhost:8888`
+- `netlify.toml`의 `[dev]` 설정에서 `npm start`를 내부적으로 실행하고 CRA의 `3000` 포트를 Netlify 개발 포트 `8888`로 프록시한다
+
+테스트 스크립트:
+- 샘플 이미지 기반 Meshy 파이프라인 테스트 스크립트: `src/test/art/run-meshy-pipeline.js`
+- 샘플 이미지: `src/test/art/sample/sample.jpg`
+- 결과 GLB/메타데이터 저장 경로: `src/test/art/output`
+- 실행 명령: `npm run test:art:meshy`
+- 실제 실행 전 `.env`의 `MESHY_API_KEY`를 진짜 값으로 바꿔야 한다
+- 샘플 테스트에서 `rigging` 전 `remesh`가 필요함을 확인했고, 테스트 스크립트와 앱 파이프라인 모두 그 단계를 포함한다
 
 운영 주의:
 - Meshy API 키는 프론트에 두지 않고 Netlify Functions에서만 사용한다
@@ -281,6 +307,10 @@ Meshy 연동 구조:
 - animated GLB를 IndexedDB에 저장하고 `three`로 재생하는 미리보기 화면을 추가했다
 - 3D 변환 중에는 원본 그림과 현재 단계 상태를 보여주는 작업창 다이얼로그를 추가했다
 - 그림판 메인 화면에서는 하단 파이프라인/플레이어 패널을 제거하고 캔버스 중심 레이아웃으로 단순화했다
+- 로컬 테스트용 `netlify-cli`, `npm run dev:netlify`, `.env` 파일을 추가했다
+- 로컬에서 `3000` 프론트와 `8888` 함수 서버를 자연스럽게 연결하기 위해 CRA 프록시(`src/setupProxy.js`)를 추가했다
+- 샘플 이미지 기반 Meshy end-to-end 테스트를 성공시켜 `src/test/art/output`에 animated GLB와 메타데이터 JSON을 저장했다
+- 미술 과목에 IndexedDB 기반 `3D 그림 갤러리` 화면을 추가했다
 
 ## 다음 세션 시작 시 확인할 것
 - `AGENT.md`
