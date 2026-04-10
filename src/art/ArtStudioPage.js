@@ -13,7 +13,7 @@ function ArtStudioPage({ onNavigate }) {
           <div>
             <span className="eyebrow">ART PLAY</span>
             <h1>그림판 놀이터</h1>
-            <p>직접 그리고, 밑그림 안을 눌러 색칠하면서 나만의 작품을 만들어요.</p>
+            <p>사람 모양 캐릭터를 그리면 3D 모델, 리깅, 애니메이션 생성 파이프라인으로 이어서 볼 수 있어요.</p>
           </div>
         </section>
 

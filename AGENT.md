@@ -22,6 +22,7 @@ npm run build
 - Create React App (`react-scripts@5`)
 - Testing Library
 - CSS 파일 기반 스타일링
+- `three` 기반 GLB 재생
 - 별도 라우터 없음. `window.history.pushState` 기반 커스텀 라우팅 사용
 
 ## 최상위 구조
@@ -142,6 +143,10 @@ npm run build
 - 메인 페이지: `src/art/ArtPage.js`
 - 그림판 페이지: `src/art/ArtStudioPage.js`
 - 핵심 컴포넌트: `src/component/art/ArtStudio.js`
+- 3D 재생 컴포넌트: `src/component/art/ArtModelViewer.js`
+- 프론트 API 계층: `src/art/artPipelineApi.js`
+- 로컬 저장 계층: `src/art/artStorage.js`
+- 애니메이션 옵션: `src/art/animationOptions.js`
 
 그림판 기능:
 - 자유 그리기
@@ -150,6 +155,10 @@ npm run build
 - 붓 굵기 선택
 - 흰 도화지에서 바로 그리기
 - 상단 툴바에서 아이콘 중심으로 도구를 선택
+- 그림을 JPG로 내보내 Meshy 파이프라인으로 전달
+- 최종 animated GLB를 IndexedDB에 저장
+- 저장된 GLB를 브라우저에서 다시 재생
+- 그림판 놀이터 화면 본문은 `CANVAS` 중심으로만 유지하고, 진행 상태는 작업 다이얼로그로 보여 준다
 
 구현 메모:
 - 그림판은 단일 캔버스 구조다
@@ -158,6 +167,48 @@ npm run build
 - 캔버스 크기는 `960 x 600` 기준으로 고정하고, CSS에서 반응형으로 축소 표시한다
 - 도구는 텍스트 대신 아이콘 버튼 위주로 제공한다
 - 연필/지우개는 툴바 버튼으로, 색상은 작은 네모 스와치로 노출한다
+- 작업 메타데이터와 GLB Blob은 IndexedDB에 분리 저장한다
+- 새로고침 후에도 진행 중 작업을 이어가기 위해 `jobs` 메타데이터를 읽고 파이프라인을 재개한다
+- `3D 캐릭터 만들기`를 누르면 작업 진행 다이얼로그를 띄워 원본 그림 미리보기와 단계별 상태를 크게 보여 준다
+- 작업 다이얼로그의 단계 표시는 세로 목록이 아니라 `그림 준비 > 3D 변환 > 리깅 > 애니메이션 > 기기 저장` 한 줄 진행형 UI를 사용한다
+- 완료 단계는 회색, 현재 단계는 깜빡이며 굵게, 남은 단계는 검은색 텍스트로 표시한다
+- 작업 다이얼로그는 화면보다 약간 작은 고정 높이로 유지하고, 스크롤 없이 이미지 영역을 다이얼로그 높이의 약 50% 안에서 가운데 정렬해 보여 준다
+- 상태 텍스트와 단계 진행 표시도 이미지 아래에서 가운데 정렬한다
+- 작업 다이얼로그의 이미지 박스는 미리보기 영역 일부가 아니라 다이얼로그 전체 높이 기준 약 50%를 직접 차지하도록 고정한다
+- 작업 다이얼로그 레이아웃 순서는 `그림 > state > 결과`다
+- `state`는 한 줄 진행형 단계 표시만 담당하고, `결과` 영역은 오류 메시지 또는 성공 후 `3D 보기` 버튼을 보여 준다
+- `state` 텍스트 스타일 규칙:
+  - 남은 작업: 검은색, 일반 굵기
+  - 지난 작업: 옅은 회색, disabled처럼 보이게
+  - 현재 진행 작업: 파란색, 볼드, 깜빡임
+- 오류가 발생해도 state 줄 전체를 실패색으로 칠하지 않고, 실패 직전 단계만 강조하고 이전/이후 단계는 기존 규칙을 유지한다
+
+Meshy 연동 구조:
+- 백엔드 오케스트레이션은 Netlify Functions로 여러 단계로 분리했다
+- 함수 위치: `netlify/functions`
+- Netlify 설정 파일: `netlify.toml`
+- 공통 helper:
+  - `netlify/functions/_lib/meshy.js`
+  - `netlify/functions/_lib/http.js`
+  - `netlify/functions/_lib/response.js`
+- 단계별 함수:
+  - `create-image3d`
+  - `get-image3d`
+  - `create-rigging`
+  - `get-rigging`
+  - `create-animation`
+  - `get-animation`
+- 프론트는 각 단계를 순차 호출하면서 상태를 저장하고, 최종 `animation_glb_url`에서 GLB Blob을 받아 IndexedDB에 보관한다
+
+필수 환경변수:
+- `MESHY_API_KEY`
+- 선택값:
+  - `MESHY_IMAGE_MODEL`
+
+운영 주의:
+- Meshy API 키는 프론트에 두지 않고 Netlify Functions에서만 사용한다
+- Meshy 결과 URL은 만료될 수 있으므로 최종 animated GLB는 즉시 IndexedDB에 저장해야 한다
+- 리깅 성공률을 높이려면 사람형 캐릭터를 크게 그리도록 UX를 유지하는 편이 좋다
 
 ## 스타일링 규칙
 - 대부분의 스타일은 `src/App.css`에 몰려 있다
@@ -216,6 +267,7 @@ npm run build
 - 영어 쓰기 게임은 아직 MVP 판별 로직이라 개선 여지가 크다
 - 미술 그림판은 캔버스 기반이며, 자유 그리기와 윤곽선 색칠을 둘 다 지원한다
 - 미술 그림판은 캔버스 기반이며, 흰 도화지에 자유 그리기와 지우개를 지원한다
+- 미술 파이프라인은 `그림 JPG -> image-to-3d -> rigging -> animation -> IndexedDB 저장 -> three.js 재생` 순서다
 - 인코딩 안정성이 중요하며, 한글 깨짐은 기능 버그만큼 우선순위가 높다
 
 ## 최근 주요 작업
@@ -224,6 +276,11 @@ npm run build
 - 미술 메인 페이지와 그림판 놀이터 페이지를 추가했다
 - 그림판을 밑그림 없는 흰 도화지 기반으로 단순화했다
 - 그림판 툴바를 아이콘 중심 UI로 바꾸고, 도화지 영역을 더 넓게 확장했다
+- Netlify Functions 기반 Meshy 다단계 오케스트레이션 계층을 추가했다
+- 그림을 JPG로 내보내 3D 생성, 리깅, 애니메이션을 순차 수행하는 프론트 파이프라인을 추가했다
+- animated GLB를 IndexedDB에 저장하고 `three`로 재생하는 미리보기 화면을 추가했다
+- 3D 변환 중에는 원본 그림과 현재 단계 상태를 보여주는 작업창 다이얼로그를 추가했다
+- 그림판 메인 화면에서는 하단 파이프라인/플레이어 패널을 제거하고 캔버스 중심 레이아웃으로 단순화했다
 
 ## 다음 세션 시작 시 확인할 것
 - `AGENT.md`
