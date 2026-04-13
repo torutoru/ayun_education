@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getBlob, listJobs } from '../../art/artStorage';
+import { downloadStoredGlb, getStoredImageUrl, listStoredArtJobs } from '../../art/artPipelineApi';
 import ArtModelViewer from './ArtModelViewer';
 
 function sortJobs(jobs) {
@@ -19,8 +19,8 @@ function ArtGallery() {
 
     const loadJobs = async () => {
       try {
-        const storedJobs = await listJobs();
-        const readyJobs = sortJobs(storedJobs.filter((job) => job.finalGlbBlobKey && job.status === 'ready'));
+        const response = await listStoredArtJobs();
+        const readyJobs = sortJobs((response.items || []).filter((job) => job.glbObjectKey && job.status === 'ready'));
 
         if (!mounted) {
           return;
@@ -49,7 +49,7 @@ function ArtGallery() {
     let mounted = true;
 
     const loadSelectedBlob = async () => {
-      if (!selectedJob?.finalGlbBlobKey) {
+      if (!selectedJob?.id) {
         if (mounted) {
           setSelectedBlob(null);
         }
@@ -57,7 +57,7 @@ function ArtGallery() {
       }
 
       try {
-        const blob = await getBlob(selectedJob.finalGlbBlobKey);
+        const blob = await downloadStoredGlb(selectedJob.id);
 
         if (mounted) {
           setSelectedBlob(blob);
@@ -94,7 +94,7 @@ function ArtGallery() {
       <div className="detail-card art-gallery-list-card">
         <div className="art-gallery-header">
           <div>
-            <span className="eyebrow">INDEXEDDB LIST</span>
+            <span className="eyebrow">FIRESTORE LIST</span>
             <h2>저장된 3D 그림</h2>
           </div>
           <span className="art-gallery-count">{jobs.length}개</span>
@@ -109,7 +109,13 @@ function ArtGallery() {
               onClick={() => setSelectedJobId(job.id)}
             >
               <div className="art-gallery-thumb">
-                {job.sourcePreviewUrl ? <img src={job.sourcePreviewUrl} alt="stored art preview" /> : null}
+                {job.previewImageKey ? (
+                  <img
+                    src={getStoredImageUrl(job.id, job.updatedAt)}
+                    alt="stored art preview"
+                    loading="lazy"
+                  />
+                ) : null}
               </div>
               <div className="art-gallery-copy">
                 <strong>{job.actionLabel || '3D 캐릭터'}</strong>

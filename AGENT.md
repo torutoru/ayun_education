@@ -23,6 +23,7 @@ npm run build
 - Testing Library
 - CSS 파일 기반 스타일링
 - `three` 기반 GLB 재생
+- Netlify Functions + Firebase Admin SDK
 - 별도 라우터 없음. `window.history.pushState` 기반 커스텀 라우팅 사용
 
 ## 최상위 구조
@@ -186,6 +187,7 @@ npm run build
   - 지난 작업: 옅은 회색, disabled처럼 보이게
   - 현재 진행 작업: 파란색, 볼드, 깜빡임
 - 오류가 발생해도 state 줄 전체를 실패색으로 칠하지 않고, 실패 직전 단계만 강조하고 이전/이후 단계는 기존 규칙을 유지한다
+- `get-image3d`, `get-remesh`, `get-rigging`, `get-animation` 응답의 `progress` 값을 현재 진행 단계 텍스트 옆에 `(30%)` 형식으로 표시한다
 
 Meshy 연동 구조:
 - 백엔드 오케스트레이션은 Netlify Functions로 여러 단계로 분리했다
@@ -195,6 +197,7 @@ Meshy 연동 구조:
   - `netlify/functions/_lib/meshy.js`
   - `netlify/functions/_lib/http.js`
   - `netlify/functions/_lib/response.js`
+  - `netlify/functions/_lib/firebaseAdmin.js`
 - 단계별 함수:
   - `create-image3d`
   - `get-image3d`
@@ -204,12 +207,30 @@ Meshy 연동 구조:
   - `get-rigging`
   - `create-animation`
   - `get-animation`
+  - `download-glb`
+  - `store-art-job`
+  - `list-art-jobs`
+  - `download-stored-glb`
 - 프론트는 각 단계를 순차 호출하면서 상태를 저장하고, `image-to-3d -> remesh -> rigging -> animation` 순서로 진행한 뒤 최종 GLB Blob을 받아 IndexedDB에 보관한다
+- 최종 GLB와 미리보기 이미지는 Netlify Function에서 Firebase Storage에도 저장한다
+- 갤러리 목록은 Firebase Firestore `artJobs` 컬렉션 기준으로 읽는다
 
 필수 환경변수:
 - `MESHY_API_KEY`
 - 선택값:
   - `MESHY_IMAGE_MODEL`
+
+Firebase 환경변수:
+- 우선순위 1: `FIREBASE_SERVICE_ACCOUNT_JSON`
+- 우선순위 2:
+  - `FIREBASE_PROJECT_ID`
+  - `FIREBASE_CLIENT_EMAIL`
+  - `FIREBASE_PRIVATE_KEY`
+- 로컬 파일 방식:
+  - `FIREBASE_SERVICE_ACCOUNT_PATH`
+  - 또는 `GOOGLE_APPLICATION_CREDENTIALS`
+- Storage 버킷:
+  - `FIREBASE_STORAGE_BUCKET`
 
 로컬 개발:
 - 로컬 함수 테스트는 `netlify dev` 기준으로 진행한다
@@ -235,6 +256,9 @@ Meshy 연동 구조:
 - Meshy API 키는 프론트에 두지 않고 Netlify Functions에서만 사용한다
 - Meshy 결과 URL은 만료될 수 있으므로 최종 animated GLB는 즉시 IndexedDB에 저장해야 한다
 - 리깅 성공률을 높이려면 사람형 캐릭터를 크게 그리도록 UX를 유지하는 편이 좋다
+- Meshy asset URL은 브라우저 직접 `fetch` 시 CORS에 막힐 수 있으므로, 최종 GLB 다운로드는 Netlify Function(`download-glb`) 프록시를 통해 처리한다
+- Firebase Admin SDK도 Netlify Functions에서만 사용한다
+- 파일형 자산은 Firebase Storage에 저장하고, 갤러리 메타데이터는 Firestore `artJobs`에 저장한다
 
 ## 스타일링 규칙
 - 대부분의 스타일은 `src/App.css`에 몰려 있다
@@ -285,6 +309,30 @@ Meshy 연동 구조:
 - `src/component/english/alphabetWritingUtils.js`
 - `src/App.css`
 
+## 2026-04-13 Update
+- 브라우저 IndexedDB 저장 로직을 제거했다.
+- `src/art/artStorage.js`는 삭제되었고, 미술 파이프라인은 더 이상 로컬 `job/blob` 저장을 사용하지 않는다.
+- 미술 그림판의 생성 결과는 Firebase Storage/Firestore 기준으로만 저장하고 다시 불러온다.
+- `src/component/art/ArtStudio.js`의 `3D 보기`는 Firebase에 저장된 GLB를 `download-stored-glb` 함수로 받아 렌더링한다.
+- `src/component/art/ArtGallery.js`, `src/art/ArtPage.js`의 갤러리 문구와 목록 기준도 IndexedDB에서 Firebase 기준으로 정리했다.
+- Firebase Storage 요금제 이슈로 저장 구조를 다시 바꿨다.
+- 이제 `store-art-job`은 Firestore 문서에 미리보기 이미지(Data URL)와 Meshy 결과 URL/만료 시각만 저장한다.
+- `download-stored-glb`는 Firestore 문서에서 Meshy GLB URL을 읽어 프록시 다운로드한다.
+- 따라서 갤러리 썸네일은 Firestore만으로 유지되지만, Meshy GLB URL이 만료되면 예전 3D 결과는 다시 재생되지 않을 수 있다.
+- Firestore-only 요구에 맞춰 GLB 바이너리 자체를 Firestore에 저장하도록 다시 변경했다.
+- `artJobs/{jobId}` 문서에는 메타데이터와 미리보기 이미지를 저장하고, 실제 GLB 바이너리는 `artJobs/{jobId}/glbChunks` 하위 컬렉션에 chunk 여러 개로 나눠 저장한다.
+- `store-art-job`는 Meshy GLB를 다운로드해서 Firestore chunk 문서들로 저장하고, `download-stored-glb`는 chunk들을 다시 합쳐 GLB 바이너리로 응답한다.
+- 이미지 저장소는 Firebase 대신 Cloudflare R2로 다시 변경했다.
+- 미리보기 이미지는 `art-preview/{jobId}.jpg` 키로 R2 버킷(`3d-image`)에 저장하고, Firestore 문서에는 `previewImageKey`만 기록한다.
+- `download-stored-image` 함수가 R2에서 이미지를 읽어 반환하고, 브라우저에서는 `Cache-Control: public, max-age=31536000, immutable`와 버전 쿼리스트링으로 캐시를 사용한다.
+- GLB Firestore chunk 저장 로직은 제거했다.
+- 이제 Firestore `artJobs` 문서에는 `jobId`, R2 object key, 파일명, 생성일시 같은 메타데이터만 저장한다.
+- 실제 미리보기 이미지와 실제 GLB 파일은 모두 Cloudflare R2에 저장한다.
+- `download-stored-glb`와 `download-stored-image`는 Firestore 메타데이터로 R2 object key를 찾아 파일을 내려준다.
+- 로컬에서는 프론트가 함수 서버를 직접 교차 출처 호출하지 않고, 상대경로 `/.netlify/functions/*`와 CRA 프록시(`src/setupProxy.js`)를 사용한다.
+- `src/setupProxy.js`는 Express mount로 잘린 경로를 다시 `/.netlify/functions/...` 형태로 붙여서 Netlify dev(`8888`)에 전달해야 정상 동작한다.
+- 로컬 Netlify Functions가 `.env`를 놓치는 경우를 대비해 `netlify/functions/_lib/firebaseAdmin.js`, `netlify/functions/_lib/r2.js`는 루트 `.env`를 직접 읽어 누락된 `process.env`를 보강한다.
+
 ## 다음 작업자가 바로 이해해야 할 핵심
 - 이 프로젝트는 "작은 교육용 미니게임 묶음"이다
 - 페이지 이동은 라우터가 아니라 수동 path 매핑이다
@@ -311,6 +359,8 @@ Meshy 연동 구조:
 - 로컬에서 `3000` 프론트와 `8888` 함수 서버를 자연스럽게 연결하기 위해 CRA 프록시(`src/setupProxy.js`)를 추가했다
 - 샘플 이미지 기반 Meshy end-to-end 테스트를 성공시켜 `src/test/art/output`에 animated GLB와 메타데이터 JSON을 저장했다
 - 미술 과목에 IndexedDB 기반 `3D 그림 갤러리` 화면을 추가했다
+- 최종 GLB 다운로드 단계에서 Meshy asset CORS를 피하기 위해 Netlify Function 프록시 다운로드를 추가했다
+- Netlify Functions에서 Firebase Storage/Firestore를 사용해 생성된 GLB와 이미지 메타데이터를 영구 저장하도록 확장했다
 
 ## 다음 세션 시작 시 확인할 것
 - `AGENT.md`

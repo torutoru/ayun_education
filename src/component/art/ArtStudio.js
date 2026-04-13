@@ -5,12 +5,13 @@ import {
   createImage3d,
   createRemesh,
   createRigging,
+  downloadStoredGlb,
   getAnimation,
   getImage3d,
   getRemesh,
-  getRigging
+  getRigging,
+  storeArtJob
 } from '../../art/artPipelineApi';
-import { createBlobKey, getBlob, listJobs, saveBlob, saveJob } from '../../art/artStorage';
 import ArtModelViewer from './ArtModelViewer';
 
 const CANVAS_WIDTH = 960;
@@ -31,6 +32,7 @@ const COLORS = [
 ];
 
 const BRUSH_SIZES = [8, 16, 28];
+
 const ACTIVE_STATUSES = new Set([
   'uploading-image',
   'image3d-pending',
@@ -39,6 +41,7 @@ const ACTIVE_STATUSES = new Set([
   'animation-pending',
   'downloading-glb'
 ]);
+
 const PIPELINE_STEPS = [
   {
     key: 'upload',
@@ -144,12 +147,12 @@ function getStatusCopy(status) {
       return 'Meshy에서 3D 모델을 만드는 중';
     case 'image3d-succeeded':
       return '3D 모델 생성 완료';
-    case 'rigging-pending':
-      return '캐릭터에 뼈대를 넣는 중';
     case 'remesh-pending':
       return '리깅 전에 모델을 가볍게 정리하는 중';
     case 'remesh-succeeded':
       return '리메시 완료';
+    case 'rigging-pending':
+      return '캐릭터에 뼈대를 넣는 중';
     case 'rigging-succeeded':
       return '리깅 완료';
     case 'animation-pending':
@@ -157,9 +160,9 @@ function getStatusCopy(status) {
     case 'animation-succeeded':
       return '애니메이션 적용 완료';
     case 'downloading-glb':
-      return '최종 GLB를 기기에 저장하는 중';
+      return '완성된 파일을 Cloudflare R2에 저장하는 중';
     case 'ready':
-      return '언제든지 재생할 수 있어요';
+      return '메타데이터와 파일 저장이 끝났어요';
     case 'failed':
       return '작업이 중간에 멈췄어요';
     default:
@@ -184,8 +187,8 @@ function getResultCopy(job) {
 
   if (job.status === 'ready') {
     return {
-      title: '기기에 저장까지 끝났어요',
-      description: '이제 3D 보기 버튼으로 완성된 캐릭터를 열 수 있어요.'
+      title: '저장까지 끝났어요',
+      description: '이제 3D 보기 버튼으로 저장된 파일을 다시 열 수 있어요.'
     };
   }
 
@@ -233,14 +236,17 @@ function getPipelineStepState(job, stepIndex) {
   return 'todo';
 }
 
-async function fetchBlobFromUrl(url) {
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error('최종 GLB 파일을 내려받지 못했어요.');
+function getPipelineStepProgress(job, step) {
+  if (!job || !step.statuses.includes(job.status)) {
+    return '';
   }
 
-  return response.blob();
+  if (typeof job.progress !== 'number') {
+    return '';
+  }
+
+  const bounded = Math.max(0, Math.min(100, Math.round(job.progress)));
+  return ` (${bounded}%)`;
 }
 
 function ArtStudio() {
@@ -262,226 +268,208 @@ function ArtStudio() {
   const isAnyJobRunning = jobs.some((job) => ACTIVE_STATUSES.has(job.status));
 
   const upsertJob = useCallback(async (nextJob) => {
-    await saveJob(nextJob);
     setJobs((prevJobs) => sortJobs([...prevJobs.filter((job) => job.id !== nextJob.id), nextJob]));
     return nextJob;
   }, []);
 
-  const mergeJob = useCallback(async (job, updates) => {
-    const nextJob = {
-      ...job,
-      ...updates,
-      updatedAt: Date.now()
-    };
+  const mergeJob = useCallback(
+    async (job, updates) => {
+      const nextJob = {
+        ...job,
+        ...updates,
+        updatedAt: Date.now()
+      };
 
-    return upsertJob(nextJob);
-  }, [upsertJob]);
+      return upsertJob(nextJob);
+    },
+    [upsertJob]
+  );
 
-  const waitForTask = useCallback(async (job, taskId, loader, pendingStatus) => {
-    let currentJob = job;
+  const waitForTask = useCallback(
+    async (job, taskId, loader, pendingStatus) => {
+      let currentJob = job;
 
-    for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt += 1) {
-      const task = await loader(taskId);
-      const status = task.status;
+      for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt += 1) {
+        const task = await loader(taskId);
+        const status = task.status;
 
-      currentJob = await mergeJob(currentJob, {
-        status: pendingStatus,
-        progress: typeof task.progress === 'number' ? task.progress : currentJob.progress,
-        stageMessage: getStatusCopy(pendingStatus)
-      });
-
-      if (status === 'SUCCEEDED') {
-        return {
-          job: currentJob,
-          task
-        };
-      }
-
-      if (status === 'FAILED' || status === 'CANCELED' || status === 'EXPIRED') {
-        throw new Error(task.task_error?.message || 'Meshy 작업이 실패했어요.');
-      }
-
-      await wait(POLL_INTERVAL_MS);
-    }
-
-    throw new Error('Meshy 작업 확인 시간이 너무 오래 걸리고 있어요. 잠시 후 다시 확인해 주세요.');
-  }, [mergeJob]);
-
-  const resumePipeline = useCallback(async (job, sourceBlobFromCaller = null) => {
-    if (runningJobsRef.current.has(job.id)) {
-      return;
-    }
-
-    runningJobsRef.current.add(job.id);
-    let currentJob = job;
-
-    try {
-      const sourceBlob = sourceBlobFromCaller || (currentJob.sourceImageBlobKey ? await getBlob(currentJob.sourceImageBlobKey) : null);
-
-      if (!sourceBlob) {
-        throw new Error('원본 그림 이미지를 찾지 못했어요.');
-      }
-
-      if (!currentJob.image3dTaskId) {
-        setFeedbackMessage('그림을 Meshy 이미지-투-3D 단계로 보내고 있어요.');
         currentJob = await mergeJob(currentJob, {
-          status: 'uploading-image',
-          stageMessage: getStatusCopy('uploading-image')
+          status: pendingStatus,
+          progress: typeof task.progress === 'number' ? task.progress : currentJob.progress,
+          stageMessage: getStatusCopy(pendingStatus)
         });
 
-        const imageDataUrl = await blobToDataUrl(sourceBlob);
-        const image3dStart = await createImage3d(imageDataUrl);
-        currentJob = await mergeJob(currentJob, {
-          image3dTaskId: image3dStart.taskId,
-          status: 'image3d-pending',
-          stageMessage: getStatusCopy('image3d-pending')
-        });
-      }
-
-      if (!currentJob.remeshTaskId) {
-        const imageTaskResult = await waitForTask(currentJob, currentJob.image3dTaskId, getImage3d, 'image3d-pending');
-        currentJob = await mergeJob(imageTaskResult.job, {
-          status: 'image3d-succeeded',
-          image3dGlbUrl: imageTaskResult.task.model_urls?.glb || '',
-          image3dPreviewUrl: imageTaskResult.task.thumbnail_url || currentJob.sourcePreviewUrl,
-          image3dExpiresAt: imageTaskResult.task.expires_at || null,
-          stageMessage: getStatusCopy('image3d-succeeded')
-        });
-
-        setFeedbackMessage('리깅 전에 모델을 가볍게 정리하고 있어요.');
-        const remeshStart = await createRemesh(currentJob.image3dTaskId);
-        currentJob = await mergeJob(currentJob, {
-          remeshTaskId: remeshStart.taskId,
-          status: 'remesh-pending',
-          stageMessage: getStatusCopy('remesh-pending')
-        });
-      }
-
-      if (!currentJob.riggingTaskId) {
-        const remeshTaskResult = await waitForTask(currentJob, currentJob.remeshTaskId, getRemesh, 'remesh-pending');
-        currentJob = await mergeJob(remeshTaskResult.job, {
-          status: 'remesh-succeeded',
-          remeshGlbUrl: remeshTaskResult.task.model_urls?.glb || '',
-          stageMessage: getStatusCopy('remesh-succeeded')
-        });
-
-        setFeedbackMessage('리메시가 끝나서 이제 캐릭터에 뼈대를 넣어요.');
-        const riggingStart = await createRigging(currentJob.remeshTaskId);
-        currentJob = await mergeJob(currentJob, {
-          riggingTaskId: riggingStart.taskId,
-          status: 'rigging-pending',
-          stageMessage: getStatusCopy('rigging-pending')
-        });
-      }
-
-      if (!currentJob.animationTaskId) {
-        const rigTaskResult = await waitForTask(currentJob, currentJob.riggingTaskId, getRigging, 'rigging-pending');
-        currentJob = await mergeJob(rigTaskResult.job, {
-          status: 'rigging-succeeded',
-          riggedGlbUrl: rigTaskResult.task.rigged_character_glb_url || '',
-          rigPreviewUrl: rigTaskResult.task.thumbnail_url || currentJob.image3dPreviewUrl,
-          stageMessage: getStatusCopy('rigging-succeeded')
-        });
-
-        setFeedbackMessage('이제 캐릭터에 움직임을 입히고 있어요.');
-        const animationStart = await createAnimation(currentJob.riggingTaskId, currentJob.actionId);
-        currentJob = await mergeJob(currentJob, {
-          animationTaskId: animationStart.taskId,
-          status: 'animation-pending',
-          stageMessage: getStatusCopy('animation-pending')
-        });
-      }
-
-      if (!currentJob.finalGlbBlobKey) {
-        const animationTaskResult = await waitForTask(currentJob, currentJob.animationTaskId, getAnimation, 'animation-pending');
-        const animationResult = animationTaskResult.task.result || {};
-        currentJob = await mergeJob(animationTaskResult.job, {
-          status: 'animation-succeeded',
-          finalGlbUrl: animationTaskResult.task.animation_glb_url || animationResult.animation_glb_url || '',
-          finalExpiresAt: animationTaskResult.task.expires_at || null,
-          stageMessage: getStatusCopy('animation-succeeded')
-        });
-
-        if (!currentJob.finalGlbUrl) {
-          throw new Error('최종 애니메이션 GLB 주소를 받지 못했어요.');
+        if (status === 'SUCCEEDED') {
+          return {
+            job: currentJob,
+            task
+          };
         }
 
-        setFeedbackMessage('완성된 GLB를 기기에 저장하고 있어요.');
-        currentJob = await mergeJob(currentJob, {
-          status: 'downloading-glb',
-          stageMessage: getStatusCopy('downloading-glb')
-        });
+        if (status === 'FAILED' || status === 'CANCELED' || status === 'EXPIRED') {
+          throw new Error(task.task_error?.message || 'Meshy 작업이 실패했어요.');
+        }
 
-        const finalBlob = await fetchBlobFromUrl(currentJob.finalGlbUrl);
-        const finalGlbBlobKey = createBlobKey('animated-glb', currentJob.id);
-        await saveBlob(finalGlbBlobKey, finalBlob);
-        currentJob = await mergeJob(currentJob, {
-          finalGlbBlobKey,
-          finalBlobSize: finalBlob.size,
-          status: 'ready',
-          progress: 100,
-          stageMessage: getStatusCopy('ready')
-        });
+        await wait(POLL_INTERVAL_MS);
       }
 
-      setSelectedJobId(currentJob.id);
-      setFeedbackMessage('완성된 캐릭터를 저장했어요. 언제든지 다시 재생할 수 있어요.');
-    } catch (error) {
-      const failedJob = await mergeJob(currentJob, {
-        status: 'failed',
-        failedFromStatus: currentJob.status,
-        errorMessage: error.message,
-        stageMessage: getStatusCopy('failed')
-      });
-      setSelectedJobId(failedJob.id);
-      setFeedbackMessage(error.message);
-    } finally {
-      runningJobsRef.current.delete(job.id);
-    }
-  }, [mergeJob, waitForTask]);
+      throw new Error('Meshy 작업 확인 시간이 너무 오래 걸리고 있어요. 잠시 후 다시 확인해 주세요.');
+    },
+    [mergeJob]
+  );
 
-  useEffect(() => {
-    let mounted = true;
-
-    const loadJobsFromStorage = async () => {
-      const storedJobs = sortJobs(await listJobs());
-
-      if (!mounted) {
+  const resumePipeline = useCallback(
+    async (job, sourceBlob) => {
+      if (runningJobsRef.current.has(job.id)) {
         return;
       }
 
-      setJobs(storedJobs);
-
-      if (storedJobs.length > 0) {
-        setSelectedJobId((prev) => prev || storedJobs[0].id);
+      if (!sourceBlob) {
+        throw new Error('원본 그림을 다시 받아야 해서 새로 3D 생성을 시작해 주세요.');
       }
 
-      storedJobs
-        .filter((job) => ACTIVE_STATUSES.has(job.status))
-        .forEach((storedJob) => {
-          resumePipeline(storedJob);
+      runningJobsRef.current.add(job.id);
+      let currentJob = job;
+
+      try {
+        if (!currentJob.image3dTaskId) {
+          setFeedbackMessage('그림을 Meshy 이미지-투-3D 단계로 보내고 있어요.');
+          currentJob = await mergeJob(currentJob, {
+            status: 'uploading-image',
+            stageMessage: getStatusCopy('uploading-image')
+          });
+
+          const imageDataUrl = await blobToDataUrl(sourceBlob);
+          const image3dStart = await createImage3d(imageDataUrl);
+          currentJob = await mergeJob(currentJob, {
+            image3dTaskId: image3dStart.taskId,
+            status: 'image3d-pending',
+            stageMessage: getStatusCopy('image3d-pending')
+          });
+        }
+
+        if (!currentJob.remeshTaskId) {
+          const imageTaskResult = await waitForTask(currentJob, currentJob.image3dTaskId, getImage3d, 'image3d-pending');
+          currentJob = await mergeJob(imageTaskResult.job, {
+            status: 'image3d-succeeded',
+            image3dGlbUrl: imageTaskResult.task.model_urls?.glb || '',
+            image3dPreviewUrl: imageTaskResult.task.thumbnail_url || currentJob.sourcePreviewUrl,
+            image3dExpiresAt: imageTaskResult.task.expires_at || null,
+            stageMessage: getStatusCopy('image3d-succeeded')
+          });
+
+          setFeedbackMessage('리깅 전에 모델을 가볍게 정리하고 있어요.');
+          const remeshStart = await createRemesh(currentJob.image3dTaskId);
+          currentJob = await mergeJob(currentJob, {
+            remeshTaskId: remeshStart.taskId,
+            status: 'remesh-pending',
+            stageMessage: getStatusCopy('remesh-pending')
+          });
+        }
+
+        if (!currentJob.riggingTaskId) {
+          const remeshTaskResult = await waitForTask(currentJob, currentJob.remeshTaskId, getRemesh, 'remesh-pending');
+          currentJob = await mergeJob(remeshTaskResult.job, {
+            status: 'remesh-succeeded',
+            remeshGlbUrl: remeshTaskResult.task.model_urls?.glb || '',
+            stageMessage: getStatusCopy('remesh-succeeded')
+          });
+
+          setFeedbackMessage('리메시가 끝나서 이제 캐릭터에 뼈대를 넣어요.');
+          const riggingStart = await createRigging(currentJob.remeshTaskId);
+          currentJob = await mergeJob(currentJob, {
+            riggingTaskId: riggingStart.taskId,
+            status: 'rigging-pending',
+            stageMessage: getStatusCopy('rigging-pending')
+          });
+        }
+
+        if (!currentJob.animationTaskId) {
+          const rigTaskResult = await waitForTask(currentJob, currentJob.riggingTaskId, getRigging, 'rigging-pending');
+          currentJob = await mergeJob(rigTaskResult.job, {
+            status: 'rigging-succeeded',
+            riggedGlbUrl: rigTaskResult.task.rigged_character_glb_url || '',
+            rigPreviewUrl: rigTaskResult.task.thumbnail_url || currentJob.image3dPreviewUrl,
+            stageMessage: getStatusCopy('rigging-succeeded')
+          });
+
+          setFeedbackMessage('이제 캐릭터에 움직임을 입히고 있어요.');
+          const animationStart = await createAnimation(currentJob.riggingTaskId, currentJob.actionId);
+          currentJob = await mergeJob(currentJob, {
+            animationTaskId: animationStart.taskId,
+            status: 'animation-pending',
+            stageMessage: getStatusCopy('animation-pending')
+          });
+        }
+
+        if (!currentJob.remoteJobId) {
+          const animationTaskResult = await waitForTask(currentJob, currentJob.animationTaskId, getAnimation, 'animation-pending');
+          const animationResult = animationTaskResult.task.result || {};
+          currentJob = await mergeJob(animationTaskResult.job, {
+            status: 'animation-succeeded',
+            finalGlbUrl: animationTaskResult.task.animation_glb_url || animationResult.animation_glb_url || '',
+            finalExpiresAt: animationTaskResult.task.expires_at || null,
+            stageMessage: getStatusCopy('animation-succeeded')
+          });
+
+          if (!currentJob.finalGlbUrl) {
+            throw new Error('최종 애니메이션 GLB 주소를 받지 못했어요.');
+          }
+
+          setFeedbackMessage('완성된 파일을 Cloudflare R2와 Firestore에 저장하고 있어요.');
+          currentJob = await mergeJob(currentJob, {
+            status: 'downloading-glb',
+            stageMessage: getStatusCopy('downloading-glb')
+          });
+
+          const remoteStored = await storeArtJob({
+            jobId: currentJob.id,
+            actionId: currentJob.actionId,
+            actionLabel: currentJob.actionLabel,
+            createdAt: currentJob.createdAt,
+            sourcePreviewDataUrl: currentJob.sourcePreviewUrl,
+            finalGlbUrl: currentJob.finalGlbUrl,
+            finalExpiresAt: currentJob.finalExpiresAt
+          });
+
+          currentJob = await mergeJob(currentJob, {
+            remoteJobId: remoteStored.jobId || currentJob.id,
+            status: 'ready',
+            progress: 100,
+            stageMessage: getStatusCopy('ready')
+          });
+        }
+
+        setSelectedJobId(currentJob.id);
+        setFeedbackMessage('완성된 캐릭터를 저장했어요. 다시 볼 수 있어요.');
+      } catch (error) {
+        const failedJob = await mergeJob(currentJob, {
+          status: 'failed',
+          failedFromStatus: currentJob.status,
+          errorMessage: error.message,
+          stageMessage: getStatusCopy('failed')
         });
-    };
-
-    loadJobsFromStorage().catch(() => {});
-
-    return () => {
-      mounted = false;
-    };
-  }, [resumePipeline]);
+        setSelectedJobId(failedJob.id);
+        setFeedbackMessage(error.message);
+      } finally {
+        runningJobsRef.current.delete(job.id);
+      }
+    },
+    [mergeJob, waitForTask]
+  );
 
   useEffect(() => {
     let mounted = true;
 
     const loadModelBlob = async () => {
-      if (!selectedJob?.finalGlbBlobKey || !isViewerDialogOpen) {
+      if (!selectedJob?.remoteJobId || !isViewerDialogOpen) {
         if (mounted) {
           setSelectedModelBlob(null);
         }
         return;
       }
 
-      const blob = await getBlob(selectedJob.finalGlbBlobKey);
+      const blob = await downloadStoredGlb(selectedJob.remoteJobId);
 
       if (mounted) {
         setSelectedModelBlob(blob);
@@ -513,26 +501,19 @@ function ArtStudio() {
 
     const sourceBlob = await canvasToBlob(canvas);
     const previewUrl = canvas.toDataURL('image/jpeg', 0.72);
-    const jobId = createJobId();
-    const sourceImageBlobKey = createBlobKey('source-image', jobId);
-
-    await saveBlob(sourceImageBlobKey, sourceBlob);
-
-    const baseJob = {
-      id: jobId,
+    const job = await upsertJob({
+      id: createJobId(),
       createdAt: Date.now(),
       updatedAt: Date.now(),
       actionId: selectedActionId,
       actionLabel: ANIMATION_OPTIONS.find((option) => option.id === selectedActionId)?.label || '기본 애니메이션',
-      sourceImageBlobKey,
       sourcePreviewUrl: previewUrl,
       status: 'uploading-image',
       progress: 0,
       stageMessage: getStatusCopy('uploading-image'),
       errorMessage: ''
-    };
+    });
 
-    const job = await upsertJob(baseJob);
     setSelectedJobId(job.id);
     setIsPipelineDialogOpen(true);
     setFeedbackMessage('새 캐릭터 작업을 시작했어요.');
@@ -748,7 +729,7 @@ function ArtStudio() {
                 return (
                   <div key={step.key} className="art-pipeline-step-inline-wrap">
                     <div className={`art-pipeline-step-inline ${stepState}`}>
-                      <span>{step.label}</span>
+                      <span>{`${step.label}${getPipelineStepProgress(selectedJob, step)}`}</span>
                     </div>
                     {index < PIPELINE_STEPS.length - 1 ? (
                       <span className="art-pipeline-step-arrow" aria-hidden="true">

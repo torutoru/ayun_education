@@ -26,7 +26,7 @@ function ArtPage({ onNavigate }) {
         <button type="button" className="submenu-button sun" onClick={() => onNavigate('/art_gallery')}>
           <span className="submenu-emoji sun">3D</span>
           <strong>3D 그림 갤러리</strong>
-          <span>IndexedDB에 저장된 3D 그림을 골라 다시 재생해요.</span>
+          <span>Firestore에 저장된 그림 기록을 골라 다시 재생해요.</span>
         </button>
       </div>
     </div>

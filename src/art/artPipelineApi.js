@@ -9,6 +9,25 @@ async function request(path, options = {}) {
   return payload;
 }
 
+async function requestBlob(path, options = {}) {
+  const response = await fetch(path, options);
+
+  if (!response.ok) {
+    let message = '파일 요청에 실패했어요.';
+
+    try {
+      const payload = await response.json();
+      message = payload?.error || message;
+    } catch (error) {
+      // Keep fallback message.
+    }
+
+    throw new Error(message);
+  }
+
+  return response.blob();
+}
+
 export function createImage3d(imageDataUrl) {
   return request('/.netlify/functions/create-image3d', {
     method: 'POST',
@@ -63,4 +82,37 @@ export function createAnimation(rigTaskId, actionId) {
 
 export function getAnimation(taskId) {
   return request(`/.netlify/functions/get-animation?taskId=${encodeURIComponent(taskId)}`);
+}
+
+export function downloadGlb(sourceUrl) {
+  return requestBlob('/.netlify/functions/download-glb', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ sourceUrl })
+  });
+}
+
+export function storeArtJob(payload) {
+  return request('/.netlify/functions/store-art-job', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+}
+
+export function listStoredArtJobs() {
+  return request('/.netlify/functions/list-art-jobs');
+}
+
+export function downloadStoredGlb(jobId) {
+  return requestBlob(`/.netlify/functions/download-stored-glb?jobId=${encodeURIComponent(jobId)}`);
+}
+
+export function getStoredImageUrl(jobId, version) {
+  const suffix = version ? `&v=${encodeURIComponent(version)}` : '';
+  return `/.netlify/functions/download-stored-image?jobId=${encodeURIComponent(jobId)}${suffix}`;
 }

@@ -32,9 +32,23 @@ function methodNotAllowed(methods = ['POST']) {
   };
 }
 
+function binary(statusCode, bodyBuffer, contentType = 'application/octet-stream', extraHeaders = {}) {
+  return {
+    statusCode,
+    isBase64Encoded: true,
+    headers: {
+      'Content-Type': contentType,
+      'Cache-Control': 'no-store',
+      ...extraHeaders
+    },
+    body: bodyBuffer.toString('base64')
+  };
+}
+
 module.exports = {
   ok,
   json,
   badRequest,
-  methodNotAllowed
+  methodNotAllowed,
+  binary
 };

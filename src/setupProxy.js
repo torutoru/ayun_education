@@ -9,7 +9,8 @@ module.exports = function setupProxy(app) {
       target,
       changeOrigin: true,
       secure: false,
-      logLevel: 'silent'
+      logLevel: 'silent',
+      pathRewrite: (path) => `/.netlify/functions${path}`
     })
   );
 };
