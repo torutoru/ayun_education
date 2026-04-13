@@ -331,7 +331,8 @@ Firebase 환경변수:
 - `download-stored-glb`와 `download-stored-image`는 Firestore 메타데이터로 R2 object key를 찾아 파일을 내려준다.
 - 로컬에서는 프론트가 함수 서버를 직접 교차 출처 호출하지 않고, 상대경로 `/.netlify/functions/*`와 CRA 프록시(`src/setupProxy.js`)를 사용한다.
 - `src/setupProxy.js`는 Express mount로 잘린 경로를 다시 `/.netlify/functions/...` 형태로 붙여서 Netlify dev(`8888`)에 전달해야 정상 동작한다.
-- 로컬 Netlify Functions가 `.env`를 놓치는 경우를 대비해 `netlify/functions/_lib/firebaseAdmin.js`, `netlify/functions/_lib/r2.js`는 루트 `.env`를 직접 읽어 누락된 `process.env`를 보강한다.
+- 로컬 개발은 `dotenv-cli`로 루트 `.env`를 먼저 로드한 뒤 `netlify dev`를 실행한다.
+- `package.json`의 `npm run dev`는 `dotenv -e .env -- netlify dev`를 사용한다.
 
 ## 다음 작업자가 바로 이해해야 할 핵심
 - 이 프로젝트는 "작은 교육용 미니게임 묶음"이다

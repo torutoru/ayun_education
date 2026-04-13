@@ -1,5 +1,4 @@
 const fs = require('fs');
-const path = require('path');
 const admin = require('firebase-admin');
 
 function readJsonFromPath(filePath) {
@@ -10,40 +9,7 @@ function readJsonFromPath(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
-function loadLocalEnvFile() {
-  const envPath = path.resolve(process.cwd(), '.env');
-
-  if (!fs.existsSync(envPath)) {
-    return;
-  }
-
-  const raw = fs.readFileSync(envPath, 'utf8');
-
-  raw.split(/\r?\n/).forEach((line) => {
-    const trimmed = line.trim();
-
-    if (!trimmed || trimmed.startsWith('#')) {
-      return;
-    }
-
-    const separatorIndex = trimmed.indexOf('=');
-
-    if (separatorIndex === -1) {
-      return;
-    }
-
-    const key = trimmed.slice(0, separatorIndex).trim();
-    const value = trimmed.slice(separatorIndex + 1);
-
-    if (!process.env[key]) {
-      process.env[key] = value;
-    }
-  });
-}
-
 function buildCredentialObject() {
-  loadLocalEnvFile();
-
   if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
     return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
   }

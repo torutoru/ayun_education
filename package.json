@@ -16,11 +16,12 @@
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
+    "dotenv-cli": "^11.0.0",
     "http-proxy-middleware": "^3.0.5",
     "netlify-cli": "^24.11.1"
   },
   "scripts": {
-    "dev": "netlify dev",
+    "dev": "dotenv -e .env -- netlify dev",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test:art:meshy": "node src/test/art/run-meshy-pipeline.js",
