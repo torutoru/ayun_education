@@ -38,6 +38,16 @@ export function createImage3d(imageDataUrl) {
   });
 }
 
+export function preprocessArtImage(imageDataUrl) {
+  return request('/.netlify/functions/generate-preprocessed-art', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ imageDataUrl })
+  });
+}
+
 export function getImage3d(taskId) {
   return request(`/.netlify/functions/get-image3d?taskId=${encodeURIComponent(taskId)}`);
 }
@@ -109,7 +119,7 @@ export function listStoredArtJobs() {
 }
 
 export function downloadStoredGlb(jobId) {
-  return requestBlob(`/.netlify/functions/download-stored-glb?jobId=${encodeURIComponent(jobId)}`);
+  return request(`/.netlify/functions/download-stored-glb?jobId=${encodeURIComponent(jobId)}`);
 }
 
 export function getStoredImageUrl(jobId, version) {

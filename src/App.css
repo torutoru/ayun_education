@@ -3261,6 +3261,7 @@ button {
 .art-board-card {
   display: grid;
   gap: 18px;
+  width: min(100%, 1280px);
 }
 
 .art-board-header {
@@ -3286,6 +3287,10 @@ button {
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
+}
+
+.art-file-input {
+  display: none;
 }
 
 .art-toolbar-divider {
@@ -3383,7 +3388,8 @@ button {
 .art-board-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9.2;
+  aspect-ratio: 16 / 10;
+  min-height: 720px;
   border-radius: 32px;
   overflow: hidden;
   border: 4px solid rgba(245, 158, 11, 0.18);
@@ -3520,6 +3526,7 @@ button {
 }
 
 .art-pipeline-dialog-preview {
+  position: relative;
   width: min(100%, 540px);
   height: calc(var(--art-dialog-height) * 0.5);
   min-height: calc(var(--art-dialog-height) * 0.5);
@@ -3534,6 +3541,20 @@ button {
   align-items: center;
   justify-content: center;
   align-self: center;
+}
+
+.art-preview-badge {
+  position: absolute;
+  top: 22px;
+  left: 24px;
+  z-index: 1;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(24, 54, 79, 0.86);
+  color: #fffdf6;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
 .art-pipeline-dialog-preview img {
@@ -3746,6 +3767,14 @@ button {
   .art-studio-layout {
     grid-template-columns: 1fr;
   }
+
+  .art-board-card {
+    width: 100%;
+  }
+
+  .art-board-wrap {
+    min-height: 620px;
+  }
 }
 
 @media (max-width: 720px) {
@@ -3756,6 +3785,10 @@ button {
   .art-toolbar {
     gap: 10px;
     padding: 12px;
+  }
+
+  .art-board-wrap {
+    min-height: 460px;
   }
 
   .art-toolbar-divider {

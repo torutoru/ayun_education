@@ -11,10 +11,14 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
+        "npm:@aws-sdk/client-s3@^3.1029.0",
         "npm:@testing-library/dom@^10.4.0",
         "npm:@testing-library/jest-dom@^6.6.3",
         "npm:@testing-library/react@^16.2.0",
         "npm:@testing-library/user-event@^13.5.0",
+        "npm:dotenv-cli@11",
+        "npm:firebase-admin@^13.8.0",
+        "npm:http-proxy-middleware@^3.0.5",
         "npm:netlify-cli@^24.11.1",
         "npm:react-dom@^18.3.1",
         "npm:react-scripts@5.0.1",

@@ -2,11 +2,11 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
-function ArtModelViewer({ blob }) {
+function ArtModelViewer({ blob, src }) {
   const mountRef = useRef(null);
 
   useEffect(() => {
-    if (!blob || !mountRef.current) {
+    if ((!blob && !src) || !mountRef.current) {
       return undefined;
     }
 
@@ -40,10 +40,11 @@ function ArtModelViewer({ blob }) {
     let mixer = null;
     let modelRoot = null;
     let frameId = 0;
-    const objectUrl = URL.createObjectURL(blob);
+    const objectUrl = blob ? URL.createObjectURL(blob) : null;
+    const modelUrl = objectUrl || src;
 
     loader.load(
-      objectUrl,
+      modelUrl,
       (gltf) => {
         modelRoot = gltf.scene;
 
@@ -102,7 +103,9 @@ function ArtModelViewer({ blob }) {
     return () => {
       window.cancelAnimationFrame(frameId);
       window.removeEventListener('resize', handleResize);
-      URL.revokeObjectURL(objectUrl);
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
       renderer.dispose();
       scene.traverse((object) => {
         if (object.geometry) {
@@ -122,7 +125,7 @@ function ArtModelViewer({ blob }) {
         mount.removeChild(renderer.domElement);
       }
     };
-  }, [blob]);
+  }, [blob, src]);
 
   return <div className="art-model-viewer" ref={mountRef} />;
 }

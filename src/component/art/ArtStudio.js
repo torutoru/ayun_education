@@ -10,12 +10,13 @@ import {
   getImage3d,
   getRemesh,
   getRigging,
+  preprocessArtImage,
   storeArtJob
 } from '../../art/artPipelineApi';
 import ArtModelViewer from './ArtModelViewer';
 
-const CANVAS_WIDTH = 960;
-const CANVAS_HEIGHT = 600;
+const CANVAS_WIDTH = 1280;
+const CANVAS_HEIGHT = 800;
 const POLL_INTERVAL_MS = 7000;
 const MAX_POLL_ATTEMPTS = 80;
 
@@ -35,6 +36,7 @@ const BRUSH_SIZES = [8, 16, 28];
 
 const ACTIVE_STATUSES = new Set([
   'uploading-image',
+  'preprocessing-image',
   'image3d-pending',
   'remesh-pending',
   'rigging-pending',
@@ -47,6 +49,11 @@ const PIPELINE_STEPS = [
     key: 'upload',
     label: '그림 준비',
     statuses: ['uploading-image']
+  },
+  {
+    key: 'preprocess',
+    label: 'AI clean-up',
+    statuses: ['preprocessing-image', 'preprocessing-succeeded']
   },
   {
     key: 'image3d',
@@ -133,6 +140,40 @@ function canvasHasInk(canvas) {
   }
 
   return false;
+}
+
+function loadImageElement(file) {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('사진을 불러오지 못했어요.'));
+    };
+
+    image.src = objectUrl;
+  });
+}
+
+function drawImageCoveringCanvas(canvas, image) {
+  const context = canvas.getContext('2d');
+  const scale = Math.min(canvas.width / image.width, canvas.height / image.height, 1);
+  const drawWidth = image.width * scale;
+  const drawHeight = image.height * scale;
+
+  const offsetX = (canvas.width - drawWidth) / 2;
+  const offsetY = (canvas.height - drawHeight) / 2;
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = '#ffffff';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
 }
 
 function createJobId() {
@@ -251,6 +292,7 @@ function getPipelineStepProgress(job, step) {
 
 function ArtStudio() {
   const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
   const isDrawingRef = useRef(false);
   const runningJobsRef = useRef(new Set());
   const [activeColor, setActiveColor] = useState(COLORS[0]);
@@ -262,10 +304,12 @@ function ArtStudio() {
   const [feedbackMessage, setFeedbackMessage] = useState('사람 모양 캐릭터를 크게 그리면 3D 애니메이션으로 만들기 쉬워요.');
   const [isPipelineDialogOpen, setIsPipelineDialogOpen] = useState(false);
   const [isViewerDialogOpen, setIsViewerDialogOpen] = useState(false);
-  const [selectedModelBlob, setSelectedModelBlob] = useState(null);
+  const [selectedModelUrl, setSelectedModelUrl] = useState('');
 
   const selectedJob = jobs.find((job) => job.id === selectedJobId) || null;
   const isAnyJobRunning = jobs.some((job) => ACTIVE_STATUSES.has(job.status));
+  const pipelinePreviewUrl = selectedJob?.preprocessedPreviewUrl || selectedJob?.sourcePreviewUrl || '';
+  const pipelinePreviewLabel = selectedJob?.preprocessedPreviewUrl ? 'Gemini refined preview' : 'Original drawing';
 
   const upsertJob = useCallback(async (nextJob) => {
     setJobs((prevJobs) => sortJobs([...prevJobs.filter((job) => job.id !== nextJob.id), nextJob]));
@@ -339,7 +383,31 @@ function ArtStudio() {
             stageMessage: getStatusCopy('uploading-image')
           });
 
-          const imageDataUrl = await blobToDataUrl(sourceBlob);
+          const originalImageDataUrl = await blobToDataUrl(sourceBlob);
+          let imageDataUrl = originalImageDataUrl;
+
+          currentJob = await mergeJob(currentJob, {
+            status: 'preprocessing-image',
+            stageMessage: getStatusCopy('preprocessing-image')
+          });
+
+          try {
+            const preprocessed = await preprocessArtImage(originalImageDataUrl);
+            imageDataUrl = preprocessed.imageDataUrl || originalImageDataUrl;
+            currentJob = await mergeJob(currentJob, {
+              status: 'preprocessing-succeeded',
+              preprocessedPreviewUrl: imageDataUrl,
+              preprocessingUsedGemini: Boolean(preprocessed.usedGemini),
+              preprocessingModel: preprocessed.model || '',
+              stageMessage: getStatusCopy('preprocessing-succeeded')
+            });
+          } catch (error) {
+            currentJob = await mergeJob(currentJob, {
+              preprocessingErrorMessage: error.message
+            });
+            setFeedbackMessage('Gemini preprocessing failed, so the original drawing is being used.');
+          }
+
           const image3dStart = await createImage3d(imageDataUrl);
           currentJob = await mergeJob(currentJob, {
             image3dTaskId: image3dStart.taskId,
@@ -464,21 +532,21 @@ function ArtStudio() {
     const loadModelBlob = async () => {
       if (!selectedJob?.remoteJobId || !isViewerDialogOpen) {
         if (mounted) {
-          setSelectedModelBlob(null);
+          setSelectedModelUrl('');
         }
         return;
       }
 
-      const blob = await downloadStoredGlb(selectedJob.remoteJobId);
+      const stored = await downloadStoredGlb(selectedJob.remoteJobId);
 
       if (mounted) {
-        setSelectedModelBlob(blob);
+        setSelectedModelUrl(stored.url || '');
       }
     };
 
     loadModelBlob().catch(() => {
       if (mounted) {
-        setSelectedModelBlob(null);
+        setSelectedModelUrl('');
       }
     });
 
@@ -579,6 +647,29 @@ function ArtStudio() {
     setFeedbackMessage('도화지를 비웠어요. 새로운 캐릭터를 그려 보세요.');
   };
 
+  const openImagePicker = () => {
+    fileInputRef.current?.click();
+  };
+
+  const importReferenceImage = async (event) => {
+    const file = event.target.files?.[0];
+    const canvas = canvasRef.current;
+
+    if (!file || !canvas) {
+      return;
+    }
+
+    try {
+      const image = await loadImageElement(file);
+      drawImageCoveringCanvas(canvas, image);
+      setFeedbackMessage('사진을 캔버스에 올렸어요. 이제 그 위에 이어서 그릴 수 있어요.');
+    } catch (error) {
+      setFeedbackMessage(error.message);
+    } finally {
+      event.target.value = '';
+    }
+  };
+
   const resultCopy = getResultCopy(selectedJob);
 
   return (
@@ -590,6 +681,14 @@ function ArtStudio() {
         </div>
 
         <div className="art-toolbar">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className="art-file-input"
+            onChange={importReferenceImage}
+          />
+
           <div className="art-toolbar-group">
             <button
               type="button"
@@ -647,6 +746,15 @@ function ArtStudio() {
           <div className="art-toolbar-divider" />
 
           <div className="art-toolbar-group">
+            <button
+              type="button"
+              className="art-icon-button"
+              onClick={openImagePicker}
+              aria-label="사진 불러오기"
+              title="사진 불러오기"
+            >
+              +
+            </button>
             <button
               type="button"
               className="art-icon-button clear"
@@ -717,8 +825,11 @@ function ArtStudio() {
             </div>
 
             <div className="art-pipeline-dialog-preview">
-              {selectedJob.sourcePreviewUrl ? (
-                <img src={selectedJob.sourcePreviewUrl} alt="pipeline preview" />
+              {pipelinePreviewUrl ? (
+                <>
+                  <span className="art-preview-badge">{pipelinePreviewLabel}</span>
+                  <img src={pipelinePreviewUrl} alt="pipeline preview" />
+                </>
               ) : null}
             </div>
 
@@ -776,8 +887,8 @@ function ArtStudio() {
               </button>
             </div>
 
-            {selectedModelBlob ? (
-              <ArtModelViewer blob={selectedModelBlob} />
+{selectedModelUrl ? (
+              <ArtModelViewer src={selectedModelUrl} />
             ) : (
               <div className="art-viewer-placeholder">저장된 3D 모델을 불러오는 중이에요.</div>
             )}

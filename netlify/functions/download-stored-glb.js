@@ -1,6 +1,6 @@
-const { badRequest, binary, json, methodNotAllowed } = require('./_lib/response');
+const { badRequest, json, methodNotAllowed, ok } = require('./_lib/response');
 const { getFirestore } = require('./_lib/firebaseAdmin');
-const { getObjectBuffer } = require('./_lib/r2');
+const { getObjectPresignedUrl } = require('./_lib/r2');
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'GET') {
@@ -30,20 +30,13 @@ exports.handler = async (event) => {
       });
     }
 
-    const object = await getObjectBuffer(document.glbObjectKey);
-    const headers = {
-      'Content-Disposition': `inline; filename="${document.glbFileName || 'stored-art.glb'}"`
-    };
+    const url = await getObjectPresignedUrl(document.glbObjectKey);
 
-    if (object.etag) {
-      headers.ETag = object.etag;
-    }
-
-    if (object.cacheControl) {
-      headers['Cache-Control'] = object.cacheControl;
-    }
-
-    return binary(200, object.buffer, object.contentType || 'model/gltf-binary', headers);
+    return ok({
+      url,
+      fileName: document.glbFileName || 'stored-art.glb',
+      contentType: document.glbContentType || 'model/gltf-binary'
+    });
   } catch (error) {
     return json(500, {
       error: error.message || 'Failed to download stored GLB.'

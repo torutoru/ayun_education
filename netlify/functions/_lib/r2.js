@@ -1,4 +1,7 @@
 const { GetObjectCommand, PutObjectCommand, S3Client } = require('@aws-sdk/client-s3');
+const { Hash } = require('@smithy/hash-node');
+const { HttpRequest } = require('@smithy/protocol-http');
+const { SignatureV4 } = require('@smithy/signature-v4');
 
 function getR2Config() {
   const accountId = process.env.R2_ACCOUNT_ID;
@@ -71,9 +74,65 @@ async function getObjectBuffer(key) {
   };
 }
 
+function encodeObjectKey(key) {
+  return String(key || '')
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+}
+
+function buildSignedUrlFromRequest(request) {
+  const queryEntries = [];
+  const query = request.query || {};
+
+  Object.keys(query).forEach((key) => {
+    const rawValue = query[key];
+    const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+
+    values.forEach((value) => {
+      if (value == null) {
+        return;
+      }
+
+      queryEntries.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+    });
+  });
+
+  const queryString = queryEntries.length ? `?${queryEntries.join('&')}` : '';
+  return `${request.protocol}//${request.hostname}${request.path}${queryString}`;
+}
+
+async function getObjectPresignedUrl(key, expiresInSeconds = 900) {
+  const config = getR2Config();
+  const signer = new SignatureV4({
+    service: 's3',
+    region: 'auto',
+    credentials: {
+      accessKeyId: config.accessKeyId,
+      secretAccessKey: config.secretAccessKey
+    },
+    sha256: Hash.bind(null, 'sha256')
+  });
+
+  const endpointHost = new URL(config.endpoint).host;
+  const request = new HttpRequest({
+    protocol: 'https:',
+    method: 'GET',
+    hostname: `${config.bucket}.${endpointHost}`,
+    path: `/${encodeObjectKey(key)}`
+  });
+
+  const signedRequest = await signer.presign(request, {
+    expiresIn: expiresInSeconds
+  });
+
+  return buildSignedUrlFromRequest(signedRequest);
+}
+
 module.exports = {
   getR2Config,
   getR2Client,
   putObjectBuffer,
-  getObjectBuffer
+  getObjectBuffer,
+  getObjectPresignedUrl
 };

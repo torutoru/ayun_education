@@ -9,7 +9,7 @@ function sortJobs(jobs) {
 function ArtGallery() {
   const [jobs, setJobs] = useState([]);
   const [selectedJobId, setSelectedJobId] = useState('');
-  const [selectedBlob, setSelectedBlob] = useState(null);
+  const [selectedModelUrl, setSelectedModelUrl] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   const selectedJob = jobs.find((job) => job.id === selectedJobId) || null;
@@ -51,20 +51,20 @@ function ArtGallery() {
     const loadSelectedBlob = async () => {
       if (!selectedJob?.id) {
         if (mounted) {
-          setSelectedBlob(null);
+          setSelectedModelUrl('');
         }
         return;
       }
 
       try {
-        const blob = await downloadStoredGlb(selectedJob.id);
+        const stored = await downloadStoredGlb(selectedJob.id);
 
         if (mounted) {
-          setSelectedBlob(blob);
+          setSelectedModelUrl(stored.url || '');
         }
       } catch (error) {
         if (mounted) {
-          setSelectedBlob(null);
+          setSelectedModelUrl('');
           setErrorMessage('선택한 3D 파일을 불러오지 못했어요.');
         }
       }
@@ -134,8 +134,8 @@ function ArtGallery() {
           </div>
         </div>
 
-        {selectedBlob ? (
-          <ArtModelViewer blob={selectedBlob} />
+        {selectedModelUrl ? (
+          <ArtModelViewer src={selectedModelUrl} />
         ) : (
           <div className="art-gallery-empty">선택한 3D 파일을 준비하는 중이에요.</div>
         )}
