@@ -91,6 +91,7 @@ async function preprocessArtImage({ imageDataUrl }) {
     'Do not redesign the main character, do not replace it with a different character, and do not invent new visual details.',
     'Prepare the image for clean Image to 3D generation: use a plain white or very simple background, strong character/background contrast, clean sharp outlines, and clear visible details.',
     'Center the main character and keep the full body visible from head to toe, preferably front-facing or slightly angled only if it reveals the character shape better.',
+    'If the legs or feet are missing, cropped, hidden, or unclear, reconstruct simple legs and feet in the same child-drawing style while preserving the main character design.',
     'For a humanoid character that will be rigged and animated, adjust only as needed toward an easy A-pose or T-pose while keeping the original pose feeling as close as possible.',
     'If arms or legs are touching the torso, separate them just enough to make the body parts readable for rigging.',
     'Remove distractions that Meshy should avoid: extra objects, extra characters, busy backgrounds, text, captions, frames, shadows, dramatic lighting, smoke, fog, particles, blur, muddy details, and very thin unclear details.',
