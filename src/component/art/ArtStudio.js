@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ANIMATION_OPTIONS } from '../../art/animationOptions';
+import { ANIMATION_OPTION_GROUPS, ANIMATION_OPTIONS } from '../../art/animationOptions';
 import {
   createAnimation,
   createImage3d,
@@ -52,7 +52,7 @@ const PIPELINE_STEPS = [
   },
   {
     key: 'preprocess',
-    label: 'AI clean-up',
+    label: 'Gemini 이미지',
     statuses: ['preprocessing-image', 'preprocessing-succeeded']
   },
   {
@@ -184,6 +184,10 @@ function getStatusCopy(status) {
   switch (status) {
     case 'uploading-image':
       return '그림을 3D 작업용으로 준비하는 중';
+    case 'preprocessing-image':
+      return 'Gemini에서 3D 모델링용 이미지를 만드는 중';
+    case 'preprocessing-succeeded':
+      return 'Gemini 이미지 준비 완료';
     case 'image3d-pending':
       return 'Meshy에서 3D 모델을 만드는 중';
     case 'image3d-succeeded':
@@ -220,6 +224,13 @@ function getResultCopy(job) {
   }
 
   if (job.status === 'failed') {
+    if (job.failedFromStatus === 'preprocessing-image') {
+      return {
+        title: '오류가 발생했어요',
+        description: job.errorMessage || 'Gemini가 3D 모델링용 이미지를 만들지 못했어요.'
+      };
+    }
+
     return {
       title: '작업이 중간에 멈췄어요',
       description: job.errorMessage || '잠시 후 다시 시도해 주세요.'
@@ -393,7 +404,12 @@ function ArtStudio() {
 
           try {
             const preprocessed = await preprocessArtImage(originalImageDataUrl);
-            imageDataUrl = preprocessed.imageDataUrl || originalImageDataUrl;
+
+            if (!preprocessed.imageDataUrl) {
+              throw new Error('Gemini가 3D 모델링용 이미지를 반환하지 않았어요.');
+            }
+
+            imageDataUrl = preprocessed.imageDataUrl;
             currentJob = await mergeJob(currentJob, {
               status: 'preprocessing-succeeded',
               preprocessedPreviewUrl: imageDataUrl,
@@ -402,10 +418,11 @@ function ArtStudio() {
               stageMessage: getStatusCopy('preprocessing-succeeded')
             });
           } catch (error) {
+            const message = error.message || 'Gemini가 3D 모델링용 이미지를 만들지 못했어요.';
             currentJob = await mergeJob(currentJob, {
-              preprocessingErrorMessage: error.message
+              preprocessingErrorMessage: message
             });
-            setFeedbackMessage('Gemini preprocessing failed, so the original drawing is being used.');
+            throw new Error(message);
           }
 
           const image3dStart = await createImage3d(imageDataUrl);
@@ -783,16 +800,25 @@ function ArtStudio() {
 
         <div className="art-pipeline-bar">
           <div className="art-action-picker">
-            {ANIMATION_OPTIONS.map((option) => (
-              <button
-                type="button"
-                key={option.id}
-                className={selectedActionId === option.id ? 'art-action-chip active' : 'art-action-chip'}
-                onClick={() => setSelectedActionId(option.id)}
-              >
-                {option.label}
-              </button>
-            ))}
+            <label className="art-action-label" htmlFor="art-animation-select">
+              움직임 고르기
+            </label>
+            <select
+              id="art-animation-select"
+              className="art-action-select"
+              value={selectedActionId}
+              onChange={(event) => setSelectedActionId(Number(event.target.value))}
+            >
+              {ANIMATION_OPTION_GROUPS.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.options.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
           </div>
 
           <button

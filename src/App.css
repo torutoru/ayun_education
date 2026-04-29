@@ -3426,9 +3426,34 @@ button {
 }
 
 .art-action-picker {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(260px, 460px);
+  flex: 1 1 520px;
+  align-items: center;
   gap: 10px;
+}
+
+.art-action-label {
+  color: #18364f;
+  font-weight: 900;
+}
+
+.art-action-select {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 44px 0 16px;
+  border: 2px solid rgba(245, 158, 11, 0.2);
+  border-radius: 16px;
+  background: #ffffff;
+  color: #18364f;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.art-action-select:focus {
+  border-color: #f59e0b;
+  outline: 3px solid rgba(245, 158, 11, 0.18);
 }
 
 .art-action-chip {
@@ -3809,6 +3834,11 @@ button {
 
   .art-pipeline-bar {
     align-items: stretch;
+  }
+
+  .art-action-picker {
+    grid-template-columns: 1fr;
+    flex-basis: 100%;
   }
 
   .art-generate-button {

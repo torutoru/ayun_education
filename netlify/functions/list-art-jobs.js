@@ -1,4 +1,4 @@
-const { json, methodNotAllowed, ok } = require('./_lib/response');
+const { json, methodNotAllowed, ok, logFunctionError } = require('./_lib/response');
 const { getFirestore } = require('./_lib/firebaseAdmin');
 
 exports.handler = async (event) => {
@@ -17,6 +17,8 @@ exports.handler = async (event) => {
       items
     });
   } catch (error) {
+    logFunctionError('list-art-jobs', error);
+
     return json(500, {
       error: error.message || 'Failed to list art jobs.'
     });

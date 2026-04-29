@@ -34,10 +34,7 @@ async function requestMeshy(path, options = {}) {
     : await response.text();
 
   if (!response.ok) {
-    const message =
-      typeof payload === 'string'
-        ? payload
-        : payload?.message || payload?.error || payload?.detail || `Meshy request failed with ${response.status}`;
+    const message = getMeshyErrorMessage(payload, response.status);
     const error = new Error(message);
     error.status = response.status;
     error.payload = payload;
@@ -45,6 +42,36 @@ async function requestMeshy(path, options = {}) {
   }
 
   return payload;
+}
+
+function getMeshyErrorMessage(payload, status) {
+  if (typeof payload === 'string') {
+    return payload;
+  }
+
+  if (!payload || typeof payload !== 'object') {
+    return `Meshy request failed with ${status}`;
+  }
+
+  if (typeof payload.message === 'string') {
+    return payload.message;
+  }
+
+  if (typeof payload.error === 'string') {
+    return payload.error;
+  }
+
+  if (typeof payload.detail === 'string') {
+    return payload.detail;
+  }
+
+  if (Array.isArray(payload.errors) && payload.errors.length > 0) {
+    return payload.errors
+      .map((item) => item?.message || item?.detail || JSON.stringify(item))
+      .join(' ');
+  }
+
+  return `Meshy request failed with ${status}`;
 }
 
 function createImageTo3DTask({ imageDataUrl }) {

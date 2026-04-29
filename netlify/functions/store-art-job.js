@@ -1,5 +1,5 @@
 const { parseJsonBody } = require('./_lib/http');
-const { badRequest, json, methodNotAllowed, ok } = require('./_lib/response');
+const { badRequest, json, methodNotAllowed, ok, logFunctionError } = require('./_lib/response');
 const { getFirestore } = require('./_lib/firebaseAdmin');
 const { putObjectBuffer } = require('./_lib/r2');
 
@@ -94,6 +94,8 @@ exports.handler = async (event) => {
       glbBytes: glbBuffer.length
     });
   } catch (error) {
+    logFunctionError('store-art-job', error);
+
     return json(500, {
       error: error.message || 'Failed to store art job.'
     });

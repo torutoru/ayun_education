@@ -1,4 +1,4 @@
-const { ok, badRequest, json, methodNotAllowed } = require('./_lib/response');
+const { ok, badRequest, json, methodNotAllowed, logFunctionError } = require('./_lib/response');
 const { getImageTo3DTask } = require('./_lib/meshy');
 
 exports.handler = async (event) => {
@@ -17,6 +17,8 @@ exports.handler = async (event) => {
 
     return ok(task);
   } catch (error) {
+    logFunctionError('get-image3d', error);
+
     return json(error.status || 500, {
       error: error.message
     });

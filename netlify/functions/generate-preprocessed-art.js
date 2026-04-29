@@ -1,5 +1,5 @@
 const { parseJsonBody } = require('./_lib/http');
-const { ok, badRequest, json, methodNotAllowed } = require('./_lib/response');
+const { ok, badRequest, json, methodNotAllowed, logFunctionError } = require('./_lib/response');
 const { preprocessArtImage } = require('./_lib/gemini');
 
 exports.handler = async (event) => {
@@ -24,6 +24,8 @@ exports.handler = async (event) => {
       usedGemini: true
     });
   } catch (error) {
+    logFunctionError('generate-preprocessed-art', error);
+
     return json(error.status || 500, {
       error: error.message
     });

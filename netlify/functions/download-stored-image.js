@@ -1,4 +1,4 @@
-const { badRequest, binary, json, methodNotAllowed } = require('./_lib/response');
+const { badRequest, binary, json, methodNotAllowed, logFunctionError } = require('./_lib/response');
 const { getFirestore } = require('./_lib/firebaseAdmin');
 const { getObjectBuffer } = require('./_lib/r2');
 
@@ -42,6 +42,8 @@ exports.handler = async (event) => {
 
     return binary(200, object.buffer, object.contentType, headers);
   } catch (error) {
+    logFunctionError('download-stored-image', error);
+
     return json(500, {
       error: error.message || 'Failed to download stored image.'
     });

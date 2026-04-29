@@ -1,5 +1,5 @@
 const { parseJsonBody } = require('./_lib/http');
-const { badRequest, json, methodNotAllowed, binary } = require('./_lib/response');
+const { badRequest, json, methodNotAllowed, binary, logFunctionError } = require('./_lib/response');
 
 function isAllowedMeshyAssetUrl(sourceUrl) {
   try {
@@ -43,6 +43,8 @@ exports.handler = async (event) => {
       'Content-Disposition': 'inline; filename="animated.glb"'
     });
   } catch (error) {
+    logFunctionError('download-glb', error);
+
     return json(500, {
       error: error.message || 'Failed to proxy GLB download.'
     });

@@ -1,4 +1,4 @@
-const { badRequest, json, methodNotAllowed, ok } = require('./_lib/response');
+const { badRequest, json, methodNotAllowed, ok, logFunctionError } = require('./_lib/response');
 const { getFirestore } = require('./_lib/firebaseAdmin');
 const { getObjectPresignedUrl } = require('./_lib/r2');
 
@@ -38,6 +38,8 @@ exports.handler = async (event) => {
       contentType: document.glbContentType || 'model/gltf-binary'
     });
   } catch (error) {
+    logFunctionError('download-stored-glb', error);
+
     return json(500, {
       error: error.message || 'Failed to download stored GLB.'
     });

@@ -11,7 +11,7 @@ function getGeminiApiKey() {
 }
 
 function getGeminiImageModel() {
-  return process.env.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image';
+  return process.env.GEMINI_IMAGE_MODEL || 'gemini-3.1-flash-image-preview';
 }
 
 function parseDataUrl(dataUrl) {
@@ -83,14 +83,19 @@ async function preprocessArtImage({ imageDataUrl }) {
   const model = getGeminiImageModel();
   const source = parseDataUrl(imageDataUrl);
   const prompt = [
-    'Edit this child drawing into a single full-body character concept for 3D conversion.',
-    'Keep the original character identity, colors, and overall style cues.',
-    'Remove background clutter and isolate one character on a plain white background.',
-    'Center the character and show the full body from head to toe.',
-    'Make the silhouette clean and readable for 3D modeling.',
-    'Ensure the arms and legs are clearly separated from the torso.',
-    'Prefer a neutral front-facing pose that is easy to rig, similar to an A-pose or T-pose.',
-    'Do not add extra characters, props, text, frames, or scenery.'
+    'This is an image-editing task, not a text-to-image generation task.',
+    'Using the provided child drawing as the source image, edit it into an image that follows Meshy Image to 3D best-practice input guidelines.',
+    'The output should show one single, clearly defined main character only.',
+    'Keep the main character attributes from the original drawing: identity, silhouette, line shapes, colors, proportions, expression, clothing, accessories, and distinctive marks.',
+    'Preserve the child-drawing style and the original character design as much as possible.',
+    'Do not redesign the main character, do not replace it with a different character, and do not invent new visual details.',
+    'Prepare the image for clean Image to 3D generation: use a plain white or very simple background, strong character/background contrast, clean sharp outlines, and clear visible details.',
+    'Center the main character and keep the full body visible from head to toe, preferably front-facing or slightly angled only if it reveals the character shape better.',
+    'For a humanoid character that will be rigged and animated, adjust only as needed toward an easy A-pose or T-pose while keeping the original pose feeling as close as possible.',
+    'If arms or legs are touching the torso, separate them just enough to make the body parts readable for rigging.',
+    'Remove distractions that Meshy should avoid: extra objects, extra characters, busy backgrounds, text, captions, frames, shadows, dramatic lighting, smoke, fog, particles, blur, muddy details, and very thin unclear details.',
+    'Only make the minimum edits needed to make the original main character suitable for Meshy Image to 3D.',
+    'Return one edited image only.'
   ].join(' ');
 
   const payload = await requestGemini(model, {
@@ -109,8 +114,8 @@ async function preprocessArtImage({ imageDataUrl }) {
       }
     ],
     generationConfig: {
-      responseModalities: ['TEXT', 'IMAGE'],
-      temperature: 0.4
+      responseModalities: ['IMAGE'],
+      temperature: 0.2
     }
   });
 

@@ -1,5 +1,5 @@
 const { parseJsonBody } = require('./_lib/http');
-const { ok, badRequest, json, methodNotAllowed } = require('./_lib/response');
+const { ok, badRequest, json, methodNotAllowed, logFunctionError } = require('./_lib/response');
 const { createImageTo3DTask } = require('./_lib/meshy');
 
 exports.handler = async (event) => {
@@ -22,6 +22,8 @@ exports.handler = async (event) => {
       taskId: result.result
     });
   } catch (error) {
+    logFunctionError('create-image3d', error);
+
     return json(error.status || 500, {
       error: error.message
     });

@@ -45,10 +45,38 @@ function binary(statusCode, bodyBuffer, contentType = 'application/octet-stream'
   };
 }
 
+function isLocalDev() {
+  return process.env.NETLIFY_DEV === 'true'
+    || process.env.CONTEXT === 'dev'
+    || process.env.NODE_ENV === 'development';
+}
+
+function logFunctionError(functionName, error) {
+  if (!isLocalDev()) {
+    return;
+  }
+
+  console.log(`[${functionName}] failed`, {
+    status: error?.status || 500,
+    name: error?.name || 'Error',
+    message: error?.message || String(error),
+    cause: error?.cause
+      ? {
+          name: error.cause.name || 'Error',
+          message: error.cause.message || String(error.cause),
+          code: error.cause.code || null
+        }
+      : null,
+    stack: error?.stack || null,
+    payload: error?.payload || null
+  });
+}
+
 module.exports = {
   ok,
   json,
   badRequest,
   methodNotAllowed,
-  binary
+  binary,
+  logFunctionError
 };
